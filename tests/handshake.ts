@@ -480,9 +480,10 @@ describe("handshake", () => {
       const nonce = nextNonce();
       const [transferPda] = findTransferPda(programId, sender.publicKey, recipient.publicKey, nonce);
 
-      // Use a claimable_until of 1 second from now so it expires quickly
+      // Use a claimable_until in the near past so it's already expired by the time we call expire.
+      // We set it a few seconds in the future so create_transfer accepts it, then wait for it to pass.
       const now = Math.floor(Date.now() / 1000);
-      const claimableUntil = new BN(now + 2);
+      const claimableUntil = new BN(now + 3);
 
       const senderBalBefore = await getTokenBalance(connection, getAta(mint, sender.publicKey));
 
@@ -493,8 +494,8 @@ describe("handshake", () => {
         .signers([sender])
         .rpc();
 
-      // Wait for expiry
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Wait for expiry (generous margin for validator clock lag)
+      await new Promise((resolve) => setTimeout(resolve, 6000));
 
       // ThirdParty expires it (permissionless)
       await program.methods
