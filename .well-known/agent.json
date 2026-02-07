@@ -1,0 +1,13 @@
+{
+  "name": "Loki Protocol",
+  "description": "Programmable escrow on Solana",
+  "version": "0.1.0",
+  "content_type": "documentation",
+  "entry_points": {
+    "llm": "/llms.txt",
+    "navigation": "/nav.md",
+    "skill": "/skill.md"
+  },
+  "formats": ["markdown"],
+  "updated": "2026-02-07"
+}

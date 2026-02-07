@@ -1,0 +1,81 @@
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  NotFoundException,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { readFile, stat } from 'fs/promises';
+import { join, resolve, normalize } from 'path';
+
+const CONTENT_DIR = join(__dirname, '..', '..', 'content');
+
+@Controller()
+export class ContentController {
+  @Get('llms.txt')
+  async llmsTxt(@Res() res: Response) {
+    return this.serveMarkdown(res, 'llms.txt');
+  }
+
+  @Get('skill.md')
+  async skillMd(@Res() res: Response) {
+    return this.serveMarkdown(res, 'skill.md');
+  }
+
+  @Get('nav.md')
+  async navMd(@Res() res: Response) {
+    return this.serveMarkdown(res, 'nav.md');
+  }
+
+  @Get('CHANGELOG.md')
+  async changelogMd(@Res() res: Response) {
+    return this.serveMarkdown(res, 'CHANGELOG.md');
+  }
+
+  @Get('docs/:path')
+  async docs(@Param('path') path: string, @Res() res: Response) {
+    return this.serveMarkdown(res, join('docs', path));
+  }
+
+  @Get('skills/:path')
+  async skills(@Param('path') path: string, @Res() res: Response) {
+    return this.serveMarkdown(res, join('skills', path));
+  }
+
+  @Get('examples/:path')
+  async examples(@Param('path') path: string, @Res() res: Response) {
+    return this.serveMarkdown(res, join('examples', path));
+  }
+
+  @Get('reference/:path')
+  async reference(@Param('path') path: string, @Res() res: Response) {
+    return this.serveMarkdown(res, join('reference', path));
+  }
+
+  private async serveMarkdown(res: Response, relativePath: string) {
+    const filePath = resolve(CONTENT_DIR, normalize(relativePath));
+
+    // Prevent directory traversal
+    if (!filePath.startsWith(CONTENT_DIR)) {
+      throw new NotFoundException();
+    }
+
+    try {
+      const [content, fileStat] = await Promise.all([
+        readFile(filePath, 'utf-8'),
+        stat(filePath),
+      ]);
+
+      res.set({
+        'Content-Type': 'text/markdown; charset=utf-8',
+        'Last-Modified': fileStat.mtime.toUTCString(),
+        'Cache-Control': 'public, max-age=300',
+      });
+
+      res.send(content);
+    } catch {
+      throw new NotFoundException();
+    }
+  }
+}

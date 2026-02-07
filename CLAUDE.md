@@ -4,56 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Handshake is a Solana program built with the Anchor framework (v0.32.1). The on-chain program is written in Rust; tests and migration scripts are in TypeScript.
+This is a monorepo containing:
+1. **Handshake** — A Solana program built with Anchor (v0.32.1), located in `/handshake`
+2. **Loki Site** — A NestJS agent-native website (root directory) for agents to interact with the Handshake protocol
+
+## Solana Program (`/handshake`)
 
 **Program ID:** `HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`
 
-## Common Commands
+### Commands (run from `/handshake`)
 
-### Build the Solana program
-```
-anchor build
-```
-
-### Run all tests (requires local validator)
-```
-anchor test
+```bash
+cd handshake
+anchor build          # Build the Solana program
+anchor test           # Run all tests (requires local validator)
+yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/handshake.ts"  # Single test file
 ```
 
-### Run a single test file
-```
-yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/handshake.ts"
-```
+### Architecture
 
-### Lint / format check
-```
-yarn lint
-```
+- **`handshake/programs/handshake/src/lib.rs`** — On-chain program. All instruction handlers and account structs.
+- **`handshake/tests/`** — TypeScript integration tests (ts-mocha + chai).
+- **`handshake/Anchor.toml`** — Anchor workspace config. Cluster is `localnet`; package manager is `yarn`.
 
-### Lint / format fix
-```
-yarn lint:fix
-```
+### Toolchain
 
-## Architecture
-
-- **`programs/handshake/src/lib.rs`** — The Solana on-chain program. All instruction handlers and account structs live here. Uses `anchor_lang` macros (`#[program]`, `#[derive(Accounts)]`, `declare_id!`).
-- **`tests/`** — TypeScript integration tests using ts-mocha + chai. Tests interact with the program via the auto-generated TypeScript client from `target/types/handshake`.
-- **`migrations/deploy.ts`** — Anchor deploy migration script.
-- **`Anchor.toml`** — Anchor workspace config. Cluster is set to `localnet`; package manager is `yarn`.
-
-## Toolchain
-
-- Rust `1.89.0` (pinned in `rust-toolchain.toml`), includes `rustfmt` and `clippy`
+- Rust `1.89.0` (pinned in `handshake/rust-toolchain.toml`)
 - Anchor CLI `0.32.1`
-- **Agave (Solana) CLI v3.0.x stable** — required for `cargo-build-sbf`. Older versions (1.18.x, 2.1.x) ship Rust compilers too old for Anchor 0.32.1's dependencies. Install with:
+- **Agave (Solana) CLI v3.0.x stable** — Install with:
   ```
   sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
   ```
-  Then ensure it's on PATH: `export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"`
-- Node/Yarn for TypeScript tests and linting
+  Then: `export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"`
 
-## Build Notes
+### Build Notes
 
-- If `Cargo.lock` has `version = 4` and the build fails with "lock file version 4 requires `-Znext-lockfile-bump`", delete `Cargo.lock` and let `anchor build` regenerate it.
-- If crate version errors mention a rustc version mismatch, the Solana/Agave CLI is likely too old — upgrade to stable.
+- If `Cargo.lock` has `version = 4` and fails with "lock file version 4 requires `-Znext-lockfile-bump`", delete it and let `anchor build` regenerate.
+- If crate version errors mention rustc mismatch, upgrade Agave CLI to stable.
+
+## Loki Site (root)
+
+NestJS agent-native website. Details TBD as the project is scaffolded.
