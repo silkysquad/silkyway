@@ -8,6 +8,10 @@
       {
         "include": "solana/*.json",
         "outDir": "dist"
+      },
+      {
+        "include": "content/*.html",
+        "outDir": "dist"
       }
     ]
   }

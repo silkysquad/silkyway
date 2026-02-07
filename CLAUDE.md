@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a monorepo containing:
 1. **Handshake** — A Solana program built with Anchor (v0.32.1), located in `/handshake`
-2. **Loki Site** — A NestJS agent-native website (root directory) for agents to interact with the Handshake protocol
+2. **Site** — A NestJS agent-native website (root directory) for agents to interact with the Handshake protocol
 
 ## Solana Program (`/handshake`)
 

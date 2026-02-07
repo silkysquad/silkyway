@@ -13,6 +13,16 @@ const CONTENT_DIR = join(__dirname, '..', '..', 'content');
 
 @Controller()
 export class ContentController {
+  @Get('/')
+  async root(@Res() res: Response) {
+    return this.serveMarkdown(res, 'index.md');
+  }
+
+  @Get('humans')
+  async humans(@Res() res: Response) {
+    return this.serveHtml(res);
+  }
+
   @Get('llms.txt')
   async llmsTxt(@Res() res: Response) {
     return this.serveMarkdown(res, 'llms.txt');
@@ -51,6 +61,27 @@ export class ContentController {
   @Get('reference/:path')
   async reference(@Param('path') path: string, @Res() res: Response) {
     return this.serveMarkdown(res, join('reference', path));
+  }
+
+  private async serveHtml(res: Response) {
+    const htmlPath = join(__dirname, 'landing.html');
+
+    try {
+      const [htmlContent, fileStat] = await Promise.all([
+        readFile(htmlPath, 'utf-8'),
+        stat(htmlPath),
+      ]);
+
+      res.set({
+        'Content-Type': 'text/html; charset=utf-8',
+        'Last-Modified': fileStat.mtime.toUTCString(),
+        'Cache-Control': 'public, max-age=300',
+      });
+
+      res.send(htmlContent);
+    } catch {
+      throw new NotFoundException();
+    }
   }
 
   private async serveMarkdown(res: Response, relativePath: string) {
