@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { CreateRequestContext } from '@mikro-orm/core';
 import { EntityRepository, EntityManager } from '@mikro-orm/postgresql';
-import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, Transaction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, Transaction, SystemProgram } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import {
   createAssociatedTokenAccountInstruction,
@@ -160,21 +160,38 @@ export class SolanaService implements OnModuleInit {
 
   // --- Faucet ---
 
-  async requestAirdrop(wallet: PublicKey): Promise<{ sol: { amount: number; txid: string } }> {
-    const walletStr = wallet.toBase58();
-
-    // Rate limit check
-    const lastRequest = this.faucetLastRequest.get(walletStr);
+  private checkRateLimit(key: string) {
+    const lastRequest = this.faucetLastRequest.get(key);
     if (lastRequest && Date.now() - lastRequest < this.FAUCET_COOLDOWN_MS) {
       const waitSec = Math.ceil((this.FAUCET_COOLDOWN_MS - (Date.now() - lastRequest)) / 1000);
       throw new Error(`RATE_LIMITED: Try again in ${waitSec} seconds`);
     }
+  }
 
-    const txid = await this.connection.requestAirdrop(wallet, 0.1 * LAMPORTS_PER_SOL);
+  async transferSol(wallet: PublicKey): Promise<{ sol: { amount: number; txid: string } }> {
+    const walletStr = `sol:${wallet.toBase58()}`;
+    this.checkRateLimit(walletStr);
+
+    const tx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: this.systemSigner.publicKey,
+        toPubkey: wallet,
+        lamports: 0.1 * LAMPORTS_PER_SOL,
+      }),
+    );
+
+    this.logger.debug(`[RPC] getLatestBlockhash for transferSol to ${wallet.toBase58()}`);
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = this.systemSigner.publicKey;
+    tx.sign(this.systemSigner);
+
+    this.logger.debug(`[RPC] sendRawTransaction for transferSol`);
+    const txid = await this.connection.sendRawTransaction(tx.serialize());
+    this.logger.debug(`[RPC] confirmTransaction for transferSol: ${txid}`);
     await this.connection.confirmTransaction(txid, 'confirmed');
 
     this.faucetLastRequest.set(walletStr, Date.now());
-
     return { sol: { amount: 0.1, txid } };
   }
 
@@ -183,13 +200,8 @@ export class SolanaService implements OnModuleInit {
       throw new Error('USDC faucet not configured. Set USDC_MINT_ADDRESS in .env.');
     }
 
-    // Rate limit (separate from SOL faucet)
     const walletStr = `usdc:${wallet.toBase58()}`;
-    const lastRequest = this.faucetLastRequest.get(walletStr);
-    if (lastRequest && Date.now() - lastRequest < this.FAUCET_COOLDOWN_MS) {
-      const waitSec = Math.ceil((this.FAUCET_COOLDOWN_MS - (Date.now() - lastRequest)) / 1000);
-      throw new Error(`RATE_LIMITED: Try again in ${waitSec} seconds`);
-    }
+    this.checkRateLimit(walletStr);
 
     const ata = getAssociatedTokenAddressSync(this.usdcMintAddress, wallet, true);
 
@@ -197,6 +209,7 @@ export class SolanaService implements OnModuleInit {
 
     // Create ATA if it doesn't exist
     try {
+      this.logger.debug(`[RPC] getAccount for ATA ${ata.toBase58()}`);
       await getAccount(this.connection, ata);
     } catch {
       tx.add(
@@ -220,15 +233,90 @@ export class SolanaService implements OnModuleInit {
       ),
     );
 
+    this.logger.debug(`[RPC] getLatestBlockhash for mintUsdc to ${wallet.toBase58()}`);
     const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
     tx.recentBlockhash = blockhash;
     tx.feePayer = this.systemSigner.publicKey;
     tx.sign(this.systemSigner);
 
+    this.logger.debug(`[RPC] sendRawTransaction for mintUsdc`);
     const txid = await this.connection.sendRawTransaction(tx.serialize());
+    this.logger.debug(`[RPC] confirmTransaction for mintUsdc: ${txid}`);
     await this.connection.confirmTransaction(txid, 'confirmed');
 
     this.faucetLastRequest.set(walletStr, Date.now());
     return { usdc: { amount, txid } };
+  }
+
+  async fundWallet(
+    wallet: PublicKey,
+    opts: { sol?: boolean; usdc?: boolean } = { sol: true, usdc: true },
+  ): Promise<{ sol?: { amount: number; txid: string }; usdc?: { amount: number; txid: string } }> {
+    const walletStr = wallet.toBase58();
+    this.checkRateLimit(`fund:${walletStr}`);
+
+    if (opts.usdc && !this.usdcMintAddress) {
+      throw new Error('USDC faucet not configured. Set USDC_MINT_ADDRESS in .env.');
+    }
+
+    const tx = new Transaction();
+
+    // SOL transfer instruction
+    if (opts.sol) {
+      tx.add(
+        SystemProgram.transfer({
+          fromPubkey: this.systemSigner.publicKey,
+          toPubkey: wallet,
+          lamports: 0.1 * LAMPORTS_PER_SOL,
+        }),
+      );
+    }
+
+    // USDC ATA creation + mint instructions
+    if (opts.usdc) {
+      const ata = getAssociatedTokenAddressSync(this.usdcMintAddress!, wallet, true);
+
+      try {
+        this.logger.debug(`[RPC] getAccount for ATA ${ata.toBase58()}`);
+        await getAccount(this.connection, ata);
+      } catch {
+        tx.add(
+          createAssociatedTokenAccountInstruction(
+            this.systemSigner.publicKey,
+            ata,
+            wallet,
+            this.usdcMintAddress!,
+          ),
+        );
+      }
+
+      const rawAmount = 100 * 1e6;
+      tx.add(
+        createMintToInstruction(
+          this.usdcMintAddress!,
+          ata,
+          this.systemSigner.publicKey,
+          rawAmount,
+        ),
+      );
+    }
+
+    this.logger.debug(`[RPC] getLatestBlockhash for fundWallet (sol=${opts.sol}, usdc=${opts.usdc})`);
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = this.systemSigner.publicKey;
+    tx.sign(this.systemSigner);
+
+    this.logger.debug(`[RPC] sendRawTransaction for fundWallet`);
+    const txid = await this.connection.sendRawTransaction(tx.serialize());
+    this.logger.debug(`[RPC] confirmTransaction for fundWallet: ${txid}`);
+    await this.connection.confirmTransaction(txid, 'confirmed');
+
+    this.faucetLastRequest.set(`fund:${walletStr}`, Date.now());
+
+    const result: { sol?: { amount: number; txid: string }; usdc?: { amount: number; txid: string } } = {};
+    if (opts.sol) result.sol = { amount: 0.1, txid };
+    if (opts.usdc) result.usdc = { amount: 100, txid };
+    return result;
   }
 }

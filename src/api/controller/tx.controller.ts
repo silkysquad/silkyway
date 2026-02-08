@@ -80,14 +80,17 @@ export class TxController {
     const wallet = new PublicKey(body.wallet);
 
     try {
-      if (body.token === 'usdc') {
+      if (body.token === 'both' || !body.token) {
+        const data = await this.solanaService.fundWallet(wallet, { sol: true, usdc: true });
+        return { ok: true, data };
+      } else if (body.token === 'sol') {
+        const data = await this.solanaService.transferSol(wallet);
+        return { ok: true, data };
+      } else if (body.token === 'usdc') {
         const data = await this.solanaService.mintUsdc(wallet);
         return { ok: true, data };
-      } else if (body.token === 'sol' || !body.token) {
-        const data = await this.solanaService.requestAirdrop(wallet);
-        return { ok: true, data };
       } else {
-        throw new BadRequestException({ ok: false, error: 'UNSUPPORTED_TOKEN', message: `Token '${body.token}' not supported. Use 'sol' or 'usdc'.` });
+        throw new BadRequestException({ ok: false, error: 'UNSUPPORTED_TOKEN', message: `Token '${body.token}' not supported. Use 'sol', 'usdc', or 'both'.` });
       }
     } catch (e) {
       if (e.message?.startsWith('RATE_LIMITED')) {

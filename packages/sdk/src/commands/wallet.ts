@@ -43,24 +43,24 @@ export async function walletFund(opts: { sol?: boolean; usdc?: boolean; wallet?:
   const doSol = opts.sol || (!opts.sol && !opts.usdc);
   const doUsdc = opts.usdc || (!opts.sol && !opts.usdc);
 
-  const funded: Record<string, unknown> = {};
-
-  if (doSol) {
-    try {
-      const res = await client.post('/api/tx/faucet', { wallet: wallet.address });
-      funded.sol = { amount: res.data.data.sol.amount, txid: res.data.data.sol.txid };
-    } catch (e: any) {
-      funded.sol = { error: e.code || 'FAUCET_FAILED', message: e.message };
-    }
+  // Determine the token parameter for a single API call
+  let token: string;
+  if (doSol && doUsdc) {
+    token = 'both';
+  } else if (doSol) {
+    token = 'sol';
+  } else {
+    token = 'usdc';
   }
 
-  if (doUsdc) {
-    try {
-      const res = await client.post('/api/tx/faucet', { wallet: wallet.address, token: 'usdc' });
-      funded.usdc = { amount: res.data.data.usdc.amount, txid: res.data.data.usdc.txid };
-    } catch (e: any) {
-      funded.usdc = { error: e.code || 'FAUCET_FAILED', message: e.message };
-    }
+  const funded: Record<string, unknown> = {};
+
+  try {
+    const res = await client.post('/api/tx/faucet', { wallet: wallet.address, token });
+    if (res.data.data.sol) funded.sol = res.data.data.sol;
+    if (res.data.data.usdc) funded.usdc = res.data.data.usdc;
+  } catch (e: any) {
+    funded.error = { code: e.code || 'FAUCET_FAILED', message: e.message };
   }
 
   outputSuccess({ action: 'wallet_funded', wallet: wallet.label, address: wallet.address, funded });
