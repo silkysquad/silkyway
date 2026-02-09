@@ -5,18 +5,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is a monorepo containing:
-1. **Handshake** — A Solana program built with Anchor (v0.32.1), located in `/handshake`
-2. **Site** — A NestJS agent-native website (root directory) for agents to interact with the Silkyway protocol
+1. **Handshake** — A Solana program built with Anchor (v0.32.1), located in `/anchor`
+2. **Backend** — A NestJS agent-native website, located in `/apps/backend`
 3. **SDK** — `@silkyway/sdk` — TypeScript SDK + CLI for agent payments on Solana, located in `/packages/sdk`
 
-## Solana Program (`/handshake`)
+## Solana Program (`/anchor`)
 
 **Program ID:** `HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`
 
-### Commands (run from `/handshake`)
+### Commands (run from `/anchor`)
 
 ```bash
-cd handshake
+cd anchor
 anchor build          # Build the Solana program
 anchor test           # Run all tests (requires local validator)
 yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/handshake.ts"  # Single test file
@@ -24,13 +24,13 @@ yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/handshake.ts"  # Single t
 
 ### Architecture
 
-- **`handshake/programs/handshake/src/lib.rs`** — On-chain program. All instruction handlers and account structs.
-- **`handshake/tests/`** — TypeScript integration tests (ts-mocha + chai).
-- **`handshake/Anchor.toml`** — Anchor workspace config. Cluster is `localnet`; package manager is `yarn`.
+- **`anchor/programs/handshake/src/lib.rs`** — On-chain program. All instruction handlers and account structs.
+- **`anchor/tests/`** — TypeScript integration tests (ts-mocha + chai).
+- **`anchor/Anchor.toml`** — Anchor workspace config. Cluster is `localnet`; package manager is `yarn`.
 
 ### Toolchain
 
-- Rust `1.89.0` (pinned in `handshake/rust-toolchain.toml`)
+- Rust `1.89.0` (pinned in `anchor/rust-toolchain.toml`)
 - Anchor CLI `0.32.1`
 - **Agave (Solana) CLI v3.0.x stable** — Install with:
   ```
@@ -72,6 +72,33 @@ npm run clean         # Remove dist/
 - TypeScript 5.7, targeting ES2022 with `NodeNext` module resolution
 - Dependencies: `@solana/web3.js`, `axios`, `bs58`, `commander`
 
-## Silkyway Site (root)
+## Backend (`/apps/backend`)
 
-NestJS agent-native website. Details TBD as the project is scaffolded.
+NestJS agent-native website for agents to interact with the Silkyway protocol.
+
+### Commands (run from `/apps/backend`)
+
+```bash
+cd apps/backend
+npm install            # Install dependencies
+npm run build          # Build (nest build --builder swc)
+npm run start:dev      # Dev mode with watch
+npm run start:prod     # Production mode (node dist/main)
+```
+
+### Architecture
+
+- **`apps/backend/src/main.ts`** — NestJS entry point.
+- **`apps/backend/src/app.module.ts`** — Root module.
+- **`apps/backend/src/api/`** — Controllers and services for REST API.
+- **`apps/backend/src/db/`** — MikroORM config and entity models.
+- **`apps/backend/src/solana/`** — Solana/Handshake client integration.
+- **`apps/backend/src/content/`** — Content rendering (landing page, docs).
+- **`apps/backend/migrations/`** — MikroORM database migrations.
+- **`apps/backend/content/`** — Markdown content files served by the site.
+
+### Toolchain
+
+- Node.js 18+, TypeScript 5.7
+- NestJS 11, MikroORM (PostgreSQL), SWC builder
+- Dependencies: `@coral-xyz/anchor`, `@solana/web3.js`, `@solana/spl-token`
