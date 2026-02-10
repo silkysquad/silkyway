@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SILKYWAY // HANDSHAKE</title>
+  <title>SILKYWAY</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@900&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -534,17 +534,17 @@
   <div class="container">
     <div class="status-bar">
       <span><span class="status-dot"></span> System Online</span>
-      <span>Solana Devnet</span>
-      <span>Anchor v0.32.1</span>
+      <span>Solana</span>
+      <span><a href="https://docs.silkyway.ai" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed rgba(168, 85, 247, 0.4);">Docs</a></span>
     </div>
 
     <header class="header">
       <div class="orbit-ring"></div>
       <h1>Silkyway</h1>
-      <div class="subtitle">// Secure Agent Payments on Solana</div>
-      <p class="tagline">Secure USDC transfers between agents. Cancellable. Time-locked. On-chain.</p>
+      <div class="subtitle">// The Financial OS for Autonomous Agents</div>
+      <p class="tagline">Agents don't need wallets. They need accounts. Policy-controlled, yield-bearing, on-chain financial infrastructure — where the safety is in the protocol, not the AI.</p>
       <div class="agent-notice">
-        <strong>Agent Interface</strong> — Looking for markdown documentation? Visit the <a href="/agent">agent endpoint</a> for machine-readable content, or <a href="/skill.md">skill.md</a> for the full API reference.
+        <strong>Agent Interface</strong> — Visit the <a href="/agent">agent endpoint</a> for machine-readable content, <a href="/skill.md">skill.md</a> for the API reference, or <a href="https://docs.silkyway.ai" target="_blank" rel="noopener">docs.silkyway.ai</a> for full documentation.
       </div>
     </header>
 
@@ -552,42 +552,43 @@
       <section class="panel">
         <span class="panel-icon">&#9888;</span>
         <h2>The Problem</h2>
-        <p>Agents sending USDC today have no safety net. Send to the wrong address? Gone. Recipient loses wallet access? Gone. Pay before delivery? Hope they deliver.</p>
-        <p>One-way transfers are a liability for autonomous agents.</p>
+        <p>Every agent wallet today is a raw keypair. Full control. No structure. One hallucination, one prompt injection, one bad API call — funds gone. Rate limits in agent code aren't enforceable. Human-in-the-loop approvals defeat automation.</p>
+        <p>Asking an agent to manage money with a wallet is like giving an employee a personal checking account to run a company budget.</p>
       </section>
 
       <section class="panel">
         <span class="panel-icon">&#9889;</span>
-        <h2>The Solution</h2>
-        <p>Silkyway holds USDC in on-chain escrow until both sides are satisfied. Senders can cancel anytime before claim. Recipients can decline unwanted transfers. Time-locks create approval windows.</p>
-        <p>Every transfer is reversible until it's not.</p>
+        <h2>Accounts, Not Wallets</h2>
+        <p>A Silkyway account is an on-chain program that holds funds, enforces spending policies, and enables programmable financial workflows. Operators get policy-bound access — per-transaction limits enforced by the chain itself, not by agent code.</p>
+        <p>The safety is in the infrastructure, not the alignment.</p>
         <ul class="link-list">
-          <li><a href="/skill.md">Full API Reference &amp; CLI Guide</a></li>
-          <li><a href="/examples/basic-escrow.md">Examples</a></li>
+          <li><a href="https://docs.silkyway.ai" target="_blank" rel="noopener">Documentation</a></li>
+          <li><a href="/skill.md">API Reference &amp; CLI Guide</a></li>
         </ul>
       </section>
 
       <section class="panel">
         <span class="panel-icon">&#10095;</span>
-        <h2>How It Works</h2>
-        <p>Three steps: send, hold, claim or cancel. The on-chain program is the neutral custodian — neither party can rug the other.</p>
-        <p style="font-size: 0.8rem; color: rgba(250, 245, 255, 0.4); margin-top: 0.5rem; font-family: 'DM Mono', monospace;">$ silk pay &lt;address&gt; 25 --memo "for services"</p>
+        <h2>Get Started</h2>
+        <p>Create an account, set spending policies, fund it. Your agent operates within on-chain guardrails — prompt injection can't drain funds beyond policy limits.</p>
+        <p style="font-size: 0.8rem; color: rgba(250, 245, 255, 0.4); margin-top: 0.5rem; font-family: 'DM Mono', monospace;">$ silk account sync</p>
         <ul class="link-list">
-          <li><a href="/agent">Agent Docs (Markdown)</a></li>
+          <li><a href="https://docs.silkyway.ai" target="_blank" rel="noopener">Full Docs</a></li>
+          <li><a href="/agent">Agent Endpoint</a></li>
           <li><a href="/llms.txt">LLM Metadata</a></li>
         </ul>
       </section>
     </main>
 
     <div class="activity-cta" style="margin-top: 2rem; padding: 1.5rem 2rem; text-align: center; border: 1px solid rgba(251, 191, 36, 0.2); background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(168, 85, 247, 0.04) 100%); border-radius: 2px; animation: fadeUp 1.2s ease-out 0.8s both;">
-      <div style="font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--solar-gold); margin-bottom: 0.5rem;">Live on Solana Devnet</div>
+      <div style="font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--solar-gold); margin-bottom: 0.5rem;">Live on Solana</div>
       <a href="/activity" style="color: var(--star-white); text-decoration: none; font-size: 1rem; font-weight: 500; border-bottom: 1px dashed var(--solar-gold);">View Live Transfer Activity &rarr;</a>
     </div>
 
     <footer class="footer">
       <div class="footer-label">Program ID</div>
-      <div class="program-id"><a href="https://solscan.io/account/HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg?cluster=devnet" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--solar-gold);">HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg</a></div>
-      <div class="footer-note">Deployed on Solana Devnet &middot; <a href="/activity" style="color: var(--nebula-purple); text-decoration: none; border-bottom: 1px dashed var(--nebula-purple);">Live Transfer Activity</a></div>
+      <div class="program-id"><a href="https://solscan.io/account/HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--solar-gold);">HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg</a></div>
+      <div class="footer-note">Deployed on Solana &middot; <a href="/activity" style="color: var(--nebula-purple); text-decoration: none; border-bottom: 1px dashed var(--nebula-purple);">Live Transfer Activity</a></div>
     </footer>
   </div>
 
