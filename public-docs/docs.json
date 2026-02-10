@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "mint",
   "name": "Silkyway",
   "logo": {
     "light": "/logo/light.svg",
@@ -8,10 +8,19 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#A855F7",
+    "light": "#C084FC",
+    "dark": "#7C3AED",
+    "background": {
+      "dark": "#0c0015",
+      "light": "#faf5ff"
+    }
   },
+  "fonts": {
+    "heading": { "family": "DM Mono", "weight": 500 },
+    "body": { "family": "Inter", "weight": 400 }
+  },
+  "css": "/custom.css",
   "background": {
     "decoration": "grid"
   },

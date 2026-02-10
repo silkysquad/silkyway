@@ -80,4 +80,48 @@ export class AccountService {
       new BN(params.amount),
     );
   }
+
+  async buildTogglePauseTx(params: { owner: string; accountPda: string }) {
+    const client = this.solanaService.getSilkysigClient();
+    return client.buildTogglePauseTx(
+      new PublicKey(params.owner),
+      new PublicKey(params.accountPda),
+    );
+  }
+
+  async buildAddOperatorTx(params: {
+    owner: string;
+    accountPda: string;
+    operator: string;
+    perTxLimit: number;
+  }) {
+    const client = this.solanaService.getSilkysigClient();
+    return client.buildAddOperatorTx(
+      new PublicKey(params.owner),
+      new PublicKey(params.accountPda),
+      new PublicKey(params.operator),
+      new BN(params.perTxLimit),
+    );
+  }
+
+  async buildRemoveOperatorTx(params: {
+    owner: string;
+    accountPda: string;
+    operator: string;
+  }) {
+    const client = this.solanaService.getSilkysigClient();
+    return client.buildRemoveOperatorTx(
+      new PublicKey(params.owner),
+      new PublicKey(params.accountPda),
+      new PublicKey(params.operator),
+    );
+  }
+
+  async buildCloseAccountTx(params: { owner: string; accountPda: string }) {
+    const client = this.solanaService.getSilkysigClient();
+    return client.buildCloseAccountTx(
+      new PublicKey(params.owner),
+      new PublicKey(params.accountPda),
+    );
+  }
 }

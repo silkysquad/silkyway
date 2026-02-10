@@ -137,6 +137,55 @@ export class AccountController {
     return { ok: true, data };
   }
 
+  @Post('pause')
+  @HttpCode(200)
+  async togglePause(@Body() body: { owner: string; accountPda: string }) {
+    this.validatePubkey(body.owner, 'owner');
+    this.validatePubkey(body.accountPda, 'accountPda');
+
+    const data = await this.accountService.buildTogglePauseTx(body);
+    return { ok: true, data };
+  }
+
+  @Post('add-operator')
+  @HttpCode(200)
+  async addOperator(
+    @Body() body: { owner: string; accountPda: string; operator: string; perTxLimit: number },
+  ) {
+    this.validatePubkey(body.owner, 'owner');
+    this.validatePubkey(body.accountPda, 'accountPda');
+    this.validatePubkey(body.operator, 'operator');
+    if (body.perTxLimit == null || body.perTxLimit < 0) {
+      throw new BadRequestException({ ok: false, error: 'INVALID_LIMIT', message: 'perTxLimit must be >= 0' });
+    }
+
+    const data = await this.accountService.buildAddOperatorTx(body);
+    return { ok: true, data };
+  }
+
+  @Post('remove-operator')
+  @HttpCode(200)
+  async removeOperator(
+    @Body() body: { owner: string; accountPda: string; operator: string },
+  ) {
+    this.validatePubkey(body.owner, 'owner');
+    this.validatePubkey(body.accountPda, 'accountPda');
+    this.validatePubkey(body.operator, 'operator');
+
+    const data = await this.accountService.buildRemoveOperatorTx(body);
+    return { ok: true, data };
+  }
+
+  @Post('close')
+  @HttpCode(200)
+  async closeAccount(@Body() body: { owner: string; accountPda: string }) {
+    this.validatePubkey(body.owner, 'owner');
+    this.validatePubkey(body.accountPda, 'accountPda');
+
+    const data = await this.accountService.buildCloseAccountTx(body);
+    return { ok: true, data };
+  }
+
   private validatePubkey(value: string, field: string) {
     if (!value) {
       throw new BadRequestException({ ok: false, error: 'MISSING_FIELD', message: `${field} is required` });

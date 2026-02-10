@@ -12,7 +12,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SDK_DIR="$REPO_ROOT/packages/sdk"
-OUT_DIR="$REPO_ROOT/public/sdk"
+OUT_DIR="$REPO_ROOT/apps/backend/public/sdk"
 
 # 1. Build TypeScript → dist/
 echo "Building SDK..."

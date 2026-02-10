@@ -1,104 +1,81 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## What is Silkyway?
 
-## Project Overview
+Silkyway is an **agent payments protocol on Solana**. It lets AI agents make payments on behalf of human users with spending controls and time-locked transfers. The monorepo contains two on-chain programs, a backend API, an SDK/CLI, and a frontend app.
 
-This is a monorepo containing:
-1. **Handshake** — A Solana program built with Anchor (v0.32.1), located in `/anchor`
-2. **Backend** — A NestJS agent-native website, located in `/apps/backend`
-3. **SDK** — `@silkyway/sdk` — TypeScript SDK + CLI for agent payments on Solana, located in `/packages/sdk`
+## Repo Structure
 
-## Solana Program (`/anchor`)
+| Path | What it is |
+|---|---|
+| `anchor/programs/handshake/` | Solana program — time-locked claimable transfers between parties |
+| `anchor/programs/silkysig/` | Solana program — managed token accounts with operator delegation and spending limits |
+| `anchor/tests/` | Integration tests for both programs (ts-mocha + chai) |
+| `apps/backend/` | NestJS API server — REST API, Solana integration, MikroORM/PostgreSQL |
+| `apps/silk/` | Next.js frontend app |
+| `packages/sdk/` | `@silkyway/sdk` — TypeScript SDK + CLI (`silk`) for agent payments |
+| `public-docs/` | Mintlify documentation site |
+| `scripts/` | Setup and build scripts — devnet setup, SDK packaging |
 
-**Program ID:** `HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`
+## Solana Programs (`/anchor`)
 
-### Commands (run from `/anchor`)
+Both programs live in the same Anchor workspace. Config is in `anchor/Anchor.toml`. Cluster is `localnet`; package manager is `yarn`.
 
-```bash
-cd anchor
-anchor build          # Build the Solana program
-anchor test           # Run all tests (requires local validator)
-yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/handshake.ts"  # Single test file
-```
+Toolchain: Rust (pinned in `anchor/rust-toolchain.toml`), Anchor CLI 0.32.1, Agave (Solana) CLI v3.0.x stable.
 
-### Architecture
+### Handshake — `HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`
 
-- **`anchor/programs/handshake/src/lib.rs`** — On-chain program. All instruction handlers and account structs.
-- **`anchor/tests/`** — TypeScript integration tests (ts-mocha + chai).
-- **`anchor/Anchor.toml`** — Anchor workspace config. Cluster is `localnet`; package manager is `yarn`.
+Payment protocol for time-locked, claimable transfers. Instructions: `init_pool`, `create_transfer`, `claim_transfer`, `cancel_transfer`, `reject_transfer`, `decline_transfer`, `expire_transfer`, `withdraw_fees`.
 
-### Toolchain
+- `anchor/programs/handshake/src/lib.rs` — All instruction handlers and account structs.
+- `anchor/tests/handshake.ts`, `anchor/tests/handshake-kit.ts` — Integration tests.
 
-- Rust `1.89.0` (pinned in `anchor/rust-toolchain.toml`)
-- Anchor CLI `0.32.1`
-- **Agave (Solana) CLI v3.0.x stable** — Install with:
-  ```
-  sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-  ```
-  Then: `export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"`
+### Silkysig — `8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs`
 
-### Build Notes
+Managed token account system with role-based operator delegation. A human owner creates an account that holds SPL tokens and authorizes up to 3 operators (agents) to transfer tokens with per-transaction spending limits. The owner bypasses all policies; operators are subject to limits and can be paused.
 
-- If `Cargo.lock` has `version = 4` and fails with "lock file version 4 requires `-Znext-lockfile-bump`", delete it and let `anchor build` regenerate.
-- If crate version errors mention rustc mismatch, upgrade Agave CLI to stable.
+**Instructions:**
+- `create_account` — Creates a SilkAccount PDA (`seeds = [b"account", owner]`) + associated token account. Optionally adds a first operator.
+- `deposit` — Anyone can deposit tokens into a Silk account.
+- `transfer_from_account` — Transfer tokens out. Owner: unrestricted. Operator: enforces pause check + per-tx limit. Others: rejected.
 
-## Silkyway SDK (`/packages/sdk`)
+**Key state — `SilkAccount`:** owner, mint, is_paused, up to 3 `OperatorSlot`s (pubkey, per_tx_limit, daily_limit fields — daily limits defined but not yet enforced).
 
-**Package:** `@silkyway/sdk` v0.1.0 — Agent payments on Solana via the Silkyway protocol.
-
-Provides both a **TypeScript client library** and a **CLI** (`silk`).
-
-### Commands (run from `/packages/sdk`)
-
-```bash
-cd packages/sdk
-npm run build         # Compile TypeScript
-npm run dev           # Watch mode
-npm run clean         # Remove dist/
-```
-
-### Architecture
-
-- **`packages/sdk/src/client.ts`** — HTTP client that talks to the Silkyway backend API.
-- **`packages/sdk/src/cli.ts`** — CLI entry point (Commander-based, exposed as `silk` bin).
-- **`packages/sdk/src/commands/`** — CLI subcommands: `wallet`, `balance`, `pay`, `claim`, `cancel`, `payments`.
-- **`packages/sdk/src/config.ts`** — Wallet/config management (`~/.config/silk/config.json`).
-- **`packages/sdk/SKILL.md`** — Agent-facing skill file shipped with the package (included in `files`).
-
-### Toolchain
-
-- Node.js 18+
-- TypeScript 5.7, targeting ES2022 with `NodeNext` module resolution
-- Dependencies: `@solana/web3.js`, `axios`, `bs58`, `commander`
+**Source layout:**
+- `anchor/programs/silkysig/src/lib.rs` — Program entry point, declares all instructions.
+- `anchor/programs/silkysig/src/instructions/` — `create_account.rs`, `deposit.rs`, `transfer_from_account.rs`.
+- `anchor/programs/silkysig/src/state/account.rs` — `SilkAccount` and `OperatorSlot` structs.
+- `anchor/programs/silkysig/src/errors.rs` — Error codes (Unauthorized, ExceedsPerTxLimit, AccountPaused, MaxOperatorsReached, etc.).
+- `anchor/tests/silkysig.ts` — Integration tests.
 
 ## Backend (`/apps/backend`)
 
-NestJS agent-native website for agents to interact with the Silkyway protocol.
+NestJS server. SWC builder. MikroORM with PostgreSQL.
 
-### Commands (run from `/apps/backend`)
+**Key directories:**
+- `src/api/` — REST controllers and services.
+- `src/db/` — MikroORM config and entity models.
+- `src/solana/` — Solana/Handshake client integration.
+- `src/content/` — Content rendering (landing page, docs).
+- `migrations/` — Database migrations.
+- `content/` — Markdown content files served by the site.
 
-```bash
-cd apps/backend
-npm install            # Install dependencies
-npm run build          # Build (nest build --builder swc)
-npm run start:dev      # Dev mode with watch
-npm run start:prod     # Production mode (node dist/main)
-```
+## SDK (`/packages/sdk`)
 
-### Architecture
+`@silkyway/sdk` — TypeScript client library + Commander-based CLI exposed as `silk`.
 
-- **`apps/backend/src/main.ts`** — NestJS entry point.
-- **`apps/backend/src/app.module.ts`** — Root module.
-- **`apps/backend/src/api/`** — Controllers and services for REST API.
-- **`apps/backend/src/db/`** — MikroORM config and entity models.
-- **`apps/backend/src/solana/`** — Solana/Handshake client integration.
-- **`apps/backend/src/content/`** — Content rendering (landing page, docs).
-- **`apps/backend/migrations/`** — MikroORM database migrations.
-- **`apps/backend/content/`** — Markdown content files served by the site.
+**Key files:**
+- `src/client.ts` — HTTP client for the backend API.
+- `src/cli.ts` — CLI entry point.
+- `src/commands/` — Subcommands: `wallet`, `balance`, `pay`, `claim`, `cancel`, `payments`, `account`.
+- `src/config.ts` — Wallet/config management (`~/.config/silk/config.json`).
+- `SKILL.md` — Agent-facing skill file shipped with the package.
 
-### Toolchain
+## Frontend (`/apps/silk`)
 
-- Node.js 18+, TypeScript 5.7
-- NestJS 11, MikroORM (PostgreSQL), SWC builder
-- Dependencies: `@coral-xyz/anchor`, `@solana/web3.js`, `@solana/spl-token`
+Next.js app. See `apps/silk/src/` for source.
+
+## Gotchas
+
+- If `Cargo.lock` has `version = 4` and fails with "lock file version 4 requires `-Znext-lockfile-bump`", delete it and let `anchor build` regenerate.
+- Anchor tests require a local validator running (`anchor test` starts one automatically).

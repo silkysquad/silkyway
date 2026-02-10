@@ -40,10 +40,46 @@ export function useAccountActions() {
     [signTransaction],
   );
 
+  const togglePause = useCallback(
+    async (params: { owner: string; accountPda: string }) => {
+      const res = await api.post('/api/account/pause', params);
+      return res.data.data as { transaction: string };
+    },
+    [],
+  );
+
+  const addOperator = useCallback(
+    async (params: { owner: string; accountPda: string; operator: string; perTxLimit: number }) => {
+      const res = await api.post('/api/account/add-operator', params);
+      return res.data.data as { transaction: string };
+    },
+    [],
+  );
+
+  const removeOperator = useCallback(
+    async (params: { owner: string; accountPda: string; operator: string }) => {
+      const res = await api.post('/api/account/remove-operator', params);
+      return res.data.data as { transaction: string };
+    },
+    [],
+  );
+
+  const closeAccount = useCallback(
+    async (params: { owner: string; accountPda: string }) => {
+      const res = await api.post('/api/account/close', params);
+      return res.data.data as { transaction: string };
+    },
+    [],
+  );
+
   return {
     createAccount,
     depositToAccount,
     fetchAccount,
     signAndSubmit,
+    togglePause,
+    addOperator,
+    removeOperator,
+    closeAccount,
   };
 }

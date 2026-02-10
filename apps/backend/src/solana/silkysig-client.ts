@@ -218,4 +218,108 @@ export class SilkysigClient {
     const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
     return { transaction: serialized };
   }
+
+  async buildTogglePauseTx(
+    owner: PublicKey,
+    accountPda: PublicKey,
+  ): Promise<{ transaction: string }> {
+    const ix = await (this.program.methods as any)
+      .togglePause()
+      .accounts({
+        owner,
+        silkAccount: accountPda,
+      })
+      .instruction();
+
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = owner;
+    tx.add(ix);
+
+    const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
+    return { transaction: serialized };
+  }
+
+  async buildAddOperatorTx(
+    owner: PublicKey,
+    accountPda: PublicKey,
+    operator: PublicKey,
+    perTxLimit: BN,
+  ): Promise<{ transaction: string }> {
+    const ix = await (this.program.methods as any)
+      .addOperator(operator, perTxLimit)
+      .accounts({
+        owner,
+        silkAccount: accountPda,
+      })
+      .instruction();
+
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = owner;
+    tx.add(ix);
+
+    const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
+    return { transaction: serialized };
+  }
+
+  async buildRemoveOperatorTx(
+    owner: PublicKey,
+    accountPda: PublicKey,
+    operator: PublicKey,
+  ): Promise<{ transaction: string }> {
+    const ix = await (this.program.methods as any)
+      .removeOperator(operator)
+      .accounts({
+        owner,
+        silkAccount: accountPda,
+      })
+      .instruction();
+
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = owner;
+    tx.add(ix);
+
+    const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
+    return { transaction: serialized };
+  }
+
+  async buildCloseAccountTx(
+    owner: PublicKey,
+    accountPda: PublicKey,
+  ): Promise<{ transaction: string }> {
+    const account = await this.fetchAccount(accountPda);
+    if (!account) throw new Error('ACCOUNT_NOT_FOUND');
+
+    const mint = account.mint;
+    const accountTokenAccount = getAssociatedTokenAddressSync(mint, accountPda, true);
+    const ownerTokenAccount = getAssociatedTokenAddressSync(mint, owner, true);
+
+    const ix = await (this.program.methods as any)
+      .closeAccount()
+      .accounts({
+        owner,
+        silkAccount: accountPda,
+        mint,
+        accountTokenAccount,
+        ownerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = owner;
+    tx.add(ix);
+
+    const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
+    return { transaction: serialized };
+  }
 }

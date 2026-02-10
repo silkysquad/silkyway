@@ -1,0 +1,321 @@
+/* Silkyway Docs — Purple/Gold Deep Space Theme */
+/* Matches the landing page at silk.silkyway.ai */
+
+/* ============================================
+   Google Fonts
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+/* ============================================
+   CSS Custom Properties — Brand Palette
+   ============================================ */
+:root {
+  --solar-gold: #fbbf24;
+  --solar-amber: #f59e0b;
+  --solar-orange: #f97316;
+  --solar-white: #fef3c7;
+  --nebula-purple: #a855f7;
+  --nebula-violet: #7c3aed;
+  --nebula-pink: #ec4899;
+  --deep-space: #0c0015;
+  --space-mid: #1a0a2e;
+  --star-white: #faf5ff;
+}
+
+/* ============================================
+   Dark Mode — Deep Space Background
+   ============================================ */
+.dark {
+  --tw-bg-opacity: 1;
+}
+
+.dark body,
+.dark .main-content,
+[data-theme="dark"] body {
+  background-color: var(--deep-space) !important;
+}
+
+/* Subtle nebula gradient overlay on dark mode background */
+.dark #content-area,
+[data-theme="dark"] #content-area {
+  background:
+    radial-gradient(ellipse 800px 600px at 20% 10%, rgba(168, 85, 247, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 400px at 80% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 70%);
+}
+
+/* ============================================
+   Sidebar — Space-Themed
+   ============================================ */
+.dark nav[class*="sidebar"],
+.dark [class*="sidebar"] {
+  background-color: rgba(12, 0, 21, 0.95) !important;
+  border-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+/* Active sidebar item — gold accent */
+.dark [class*="sidebar"] a[aria-current="page"],
+.dark [class*="sidebar"] a.active {
+  color: var(--solar-gold) !important;
+  border-left-color: var(--solar-gold) !important;
+}
+
+/* ============================================
+   Typography — Monospace Headings
+   ============================================ */
+h1, h2, h3, h4, h5, h6,
+.dark h1, .dark h2, .dark h3, .dark h4 {
+  font-family: 'DM Mono', monospace !important;
+  letter-spacing: 0.01em;
+}
+
+/* Page title — gold shimmer in dark mode */
+.dark h1 {
+  color: var(--solar-white) !important;
+}
+
+/* Section headings — purple accent */
+.dark h2 {
+  color: var(--nebula-purple) !important;
+}
+
+/* ============================================
+   Code Blocks — Space Terminal
+   ============================================ */
+.dark pre,
+.dark [class*="codeblock"],
+.dark code[class*="language-"] {
+  background: rgba(26, 10, 46, 0.8) !important;
+  border: 1px solid rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark :not(pre) > code {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: var(--nebula-purple) !important;
+  border: 1px solid rgba(168, 85, 247, 0.15) !important;
+}
+
+/* ============================================
+   Cards — Hover Glow Effect
+   ============================================ */
+.dark [class*="Card"],
+.dark [class*="card-"] {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, rgba(12, 0, 21, 0.6) 100%) !important;
+  border-color: rgba(168, 85, 247, 0.15) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.dark [class*="Card"]:hover,
+.dark [class*="card-"]:hover {
+  border-color: rgba(251, 191, 36, 0.3) !important;
+  box-shadow:
+    0 0 20px rgba(168, 85, 247, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+/* Card icon — gold on hover */
+.dark [class*="Card"]:hover [class*="icon"],
+.dark [class*="card-"]:hover [class*="icon"] {
+  color: var(--solar-gold) !important;
+}
+
+/* ============================================
+   Callouts — Purple/Gold Accents
+   ============================================ */
+
+/* Note callout — purple border */
+.dark [class*="callout"][class*="note"],
+.dark [class*="Note"] {
+  background: rgba(168, 85, 247, 0.06) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Warning callout — gold border */
+.dark [class*="callout"][class*="warning"],
+.dark [class*="Warning"] {
+  background: rgba(251, 191, 36, 0.06) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* Info callout — violet */
+.dark [class*="callout"][class*="info"],
+.dark [class*="Info"] {
+  background: rgba(124, 58, 237, 0.06) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+}
+
+/* Tip callout — gold */
+.dark [class*="callout"][class*="tip"],
+.dark [class*="Tip"] {
+  background: rgba(251, 191, 36, 0.06) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* ============================================
+   Tables — Space Grid
+   ============================================ */
+.dark table {
+  border-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+.dark th {
+  background: rgba(168, 85, 247, 0.08) !important;
+  color: var(--nebula-purple) !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark td {
+  border-color: rgba(168, 85, 247, 0.08) !important;
+}
+
+.dark tr:hover td {
+  background: rgba(168, 85, 247, 0.04) !important;
+}
+
+/* ============================================
+   Tabs — Purple Active State
+   ============================================ */
+.dark [role="tab"][aria-selected="true"],
+.dark [class*="tab"][class*="active"] {
+  color: var(--solar-gold) !important;
+  border-bottom-color: var(--solar-gold) !important;
+}
+
+/* ============================================
+   Steps — Gold Numbered Steps
+   ============================================ */
+.dark [class*="step"] [class*="number"],
+.dark [class*="Step"] [class*="circle"] {
+  background: var(--solar-gold) !important;
+  color: var(--deep-space) !important;
+}
+
+/* ============================================
+   Accordion — Purple Border
+   ============================================ */
+.dark [class*="accordion"],
+.dark details {
+  border-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark [class*="accordion"]:hover,
+.dark details:hover {
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+/* ============================================
+   Navbar — Deep Space
+   ============================================ */
+.dark header[class*="navbar"],
+.dark [class*="top-bar"],
+.dark nav[class*="top"] {
+  background: rgba(12, 0, 21, 0.9) !important;
+  backdrop-filter: blur(12px);
+  border-bottom-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+/* CTA button — gold gradient */
+.dark a[class*="primary-cta"],
+.dark [class*="navbar"] a[class*="button"],
+.dark header a[class*="primary"] {
+  background: linear-gradient(135deg, var(--solar-gold) 0%, var(--solar-amber) 100%) !important;
+  color: var(--deep-space) !important;
+  border: none !important;
+  font-family: 'DM Mono', monospace !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.03em;
+}
+
+.dark a[class*="primary-cta"]:hover,
+.dark [class*="navbar"] a[class*="button"]:hover,
+.dark header a[class*="primary"]:hover {
+  background: linear-gradient(135deg, var(--solar-amber) 0%, var(--solar-orange) 100%) !important;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3) !important;
+}
+
+/* ============================================
+   Links — Purple with Gold Hover
+   ============================================ */
+.dark a:not([class*="button"]):not([class*="primary"]):not(nav a) {
+  transition: color 0.2s ease;
+}
+
+.dark a:not([class*="button"]):not([class*="primary"]):not(nav a):hover {
+  color: var(--solar-gold) !important;
+}
+
+/* ============================================
+   Scrollbar — Purple Themed
+   ============================================ */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--deep-space);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* ============================================
+   Footer — Muted Space
+   ============================================ */
+.dark footer {
+  border-top-color: rgba(168, 85, 247, 0.1) !important;
+}
+
+/* ============================================
+   Selection — Gold Highlight
+   ============================================ */
+.dark ::selection {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--solar-white);
+}
+
+/* ============================================
+   Grid Background Decoration — Purple Tint
+   ============================================ */
+.dark [class*="grid-decoration"],
+.dark [class*="background-decoration"] {
+  opacity: 0.3 !important;
+}
+
+/* ============================================
+   ParamField / ResponseField — API Docs
+   ============================================ */
+.dark [class*="ParamField"],
+.dark [class*="paramfield"] {
+  border-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+.dark [class*="ParamField"] [class*="name"],
+.dark [class*="paramfield"] [class*="name"] {
+  font-family: 'DM Mono', monospace !important;
+  color: var(--solar-gold) !important;
+}
+
+/* ============================================
+   Light Mode — Subtle Purple Tint
+   ============================================ */
+:not(.dark) h2 {
+  color: #6D28D9 !important;
+}
+
+:not(.dark) th {
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

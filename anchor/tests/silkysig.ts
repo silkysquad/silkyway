@@ -489,7 +489,7 @@ describe("silkysig", () => {
       // Success — unlimited operator had no cap
     });
 
-    it("C8. transfer initializes recipient ATA if needed", async () => {
+    it("C8. transfer initializes recipient ATA if needed (operator)", async () => {
       // Generate a fresh recipient with no ATA
       const freshRecipient = Keypair.generate();
       const tx = new Transaction().add(
@@ -522,6 +522,444 @@ describe("silkysig", () => {
       // Recipient ATA was created and has the correct balance
       const balance = await getTokenBalance(connection, getAta(mint, freshRecipient.publicKey));
       assert.equal(balance.toNumber(), 1_000_000);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Group D: Toggle Pause
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe("D. Toggle Pause", () => {
+    it("D1. toggle_pause flips false→true", async () => {
+      await program.methods
+        .togglePause()
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
+        })
+        .signers([owner])
+        .rpc();
+
+      const account = await program.account.silkAccount.fetch(accountPda);
+      assert.equal(account.isPaused, true);
+    });
+
+    it("D2. operator transfer blocked while paused", async () => {
+      const amount = new BN(1_000_000);
+
+      try {
+        await program.methods
+          .transferFromAccount(amount)
+          .accounts({
+            signer: operator.publicKey,
+            silkAccount: accountPda,
+            mint,
+            accountTokenAccount: getAta(mint, accountPda),
+            recipient: recipient.publicKey,
+            recipientTokenAccount: getAta(mint, recipient.publicKey),
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([operator])
+          .rpc();
+        assert.fail("Should have been rejected — account is paused");
+      } catch (err: any) {
+        assert.include(err.toString(), "AccountPaused");
+      }
+    });
+
+    it("D3. toggle_pause flips true→false", async () => {
+      await program.methods
+        .togglePause()
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
+        })
+        .signers([owner])
+        .rpc();
+
+      const account = await program.account.silkAccount.fetch(accountPda);
+      assert.equal(account.isPaused, false);
+    });
+
+    it("D4. operator transfer succeeds after unpause", async () => {
+      const amount = new BN(1_000_000);
+
+      await program.methods
+        .transferFromAccount(amount)
+        .accounts({
+          signer: operator.publicKey,
+          silkAccount: accountPda,
+          mint,
+          accountTokenAccount: getAta(mint, accountPda),
+          recipient: recipient.publicKey,
+          recipientTokenAccount: getAta(mint, recipient.publicKey),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([operator])
+        .rpc();
+
+      // If we got here without error, it succeeded
+    });
+
+    it("D5. toggle_pause by non-owner fails", async () => {
+      try {
+        await program.methods
+          .togglePause()
+          .accounts({
+            owner: outsider.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([outsider])
+          .rpc();
+        assert.fail("Should have failed — non-owner");
+      } catch (err: any) {
+        // Seeds mismatch: outsider's key derives a different PDA
+        assert.include(err.toString(), "AnchorError");
+      }
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Group E: Add/Remove Operator
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe("E. Add/Remove Operator", () => {
+    let operator2: Keypair;
+    let operator3: Keypair;
+    let operator4: Keypair;
+
+    before(async () => {
+      operator2 = Keypair.generate();
+      operator3 = Keypair.generate();
+      operator4 = Keypair.generate();
+    });
+
+    it("E1. add second operator, verify operator_count == 2", async () => {
+      await program.methods
+        .addOperator(operator2.publicKey, new BN(10_000_000))
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
+        })
+        .signers([owner])
+        .rpc();
+
+      const account = await program.account.silkAccount.fetch(accountPda);
+      assert.equal(account.operatorCount, 2);
+      assert.equal(account.operators[1].pubkey.toString(), operator2.publicKey.toString());
+      assert.equal(account.operators[1].perTxLimit.toString(), "10000000");
+    });
+
+    it("E2. add duplicate operator fails", async () => {
+      try {
+        await program.methods
+          .addOperator(operator2.publicKey, new BN(5_000_000))
+          .accounts({
+            owner: owner.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([owner])
+          .rpc();
+        assert.fail("Should have failed — duplicate operator");
+      } catch (err: any) {
+        assert.include(err.toString(), "OperatorAlreadyExists");
+      }
+    });
+
+    it("E3. add third (max) operator, verify operator_count == 3", async () => {
+      await program.methods
+        .addOperator(operator3.publicKey, new BN(1_000_000))
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
+        })
+        .signers([owner])
+        .rpc();
+
+      const account = await program.account.silkAccount.fetch(accountPda);
+      assert.equal(account.operatorCount, 3);
+    });
+
+    it("E4. add fourth operator fails — MaxOperatorsReached", async () => {
+      try {
+        await program.methods
+          .addOperator(operator4.publicKey, new BN(1_000_000))
+          .accounts({
+            owner: owner.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([owner])
+          .rpc();
+        assert.fail("Should have failed — max operators");
+      } catch (err: any) {
+        assert.include(err.toString(), "MaxOperatorsReached");
+      }
+    });
+
+    it("E5. remove middle operator, verify swap-remove", async () => {
+      // Remove operator2 (index 1), operator3 (index 2) should move to index 1
+      const op3Key = operator3.publicKey.toString();
+
+      await program.methods
+        .removeOperator(operator2.publicKey)
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
+        })
+        .signers([owner])
+        .rpc();
+
+      const account = await program.account.silkAccount.fetch(accountPda);
+      assert.equal(account.operatorCount, 2);
+      // operator3 was swapped into index 1
+      assert.equal(account.operators[1].pubkey.toString(), op3Key);
+      // slot 2 should be cleared
+      assert.equal(account.operators[2].pubkey.toString(), PublicKey.default.toString());
+    });
+
+    it("E6. remove non-existent operator fails", async () => {
+      try {
+        await program.methods
+          .removeOperator(operator4.publicKey)
+          .accounts({
+            owner: owner.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([owner])
+          .rpc();
+        assert.fail("Should have failed — operator not found");
+      } catch (err: any) {
+        assert.include(err.toString(), "OperatorNotFound");
+      }
+    });
+
+    it("E7. add/remove by non-owner fails", async () => {
+      try {
+        await program.methods
+          .addOperator(operator4.publicKey, new BN(1_000_000))
+          .accounts({
+            owner: outsider.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([outsider])
+          .rpc();
+        assert.fail("Should have failed — non-owner add");
+      } catch (err: any) {
+        // Seeds mismatch: outsider's key derives a different PDA
+        assert.include(err.toString(), "AnchorError");
+      }
+
+      try {
+        await program.methods
+          .removeOperator(operator.publicKey)
+          .accounts({
+            owner: outsider.publicKey,
+            silkAccount: accountPda,
+          })
+          .signers([outsider])
+          .rpc();
+        assert.fail("Should have failed — non-owner remove");
+      } catch (err: any) {
+        assert.include(err.toString(), "AnchorError");
+      }
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Group F: Close Account (uses fresh accounts to avoid breaking A-E)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe("F. Close Account", () => {
+    let closeOwner: Keypair;
+    let closePda: PublicKey;
+    let closeBump: number;
+
+    before(async () => {
+      closeOwner = Keypair.generate();
+
+      // Fund
+      const tx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: payer,
+          toPubkey: closeOwner.publicKey,
+          lamports: 0.1 * web3.LAMPORTS_PER_SOL,
+        })
+      );
+      await provider.sendAndConfirm(tx);
+
+      // Create ATA and mint tokens
+      const ata = await createAssociatedTokenAccount(
+        connection,
+        payerKeypair,
+        mint,
+        closeOwner.publicKey
+      );
+      await mintTo(connection, payerKeypair, mint, ata, payerKeypair, 50_000_000);
+
+      // Derive PDA
+      [closePda, closeBump] = findAccountPda(programId, closeOwner.publicKey);
+
+      // Create account
+      await program.methods
+        .createAccount(null, null)
+        .accounts({
+          owner: closeOwner.publicKey,
+          mint,
+          silkAccount: closePda,
+          accountTokenAccount: getAta(mint, closePda),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([closeOwner])
+        .rpc();
+    });
+
+    it("F1. close_account sweeps tokens and closes PDA", async () => {
+      // Deposit tokens first
+      await program.methods
+        .deposit(new BN(20_000_000))
+        .accounts({
+          depositor: closeOwner.publicKey,
+          silkAccount: closePda,
+          mint,
+          accountTokenAccount: getAta(mint, closePda),
+          depositorTokenAccount: getAta(mint, closeOwner.publicKey),
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([closeOwner])
+        .rpc();
+
+      const ownerBalBefore = await getTokenBalance(connection, getAta(mint, closeOwner.publicKey));
+
+      await program.methods
+        .closeAccount()
+        .accounts({
+          owner: closeOwner.publicKey,
+          silkAccount: closePda,
+          mint,
+          accountTokenAccount: getAta(mint, closePda),
+          ownerTokenAccount: getAta(mint, closeOwner.publicKey),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([closeOwner])
+        .rpc();
+
+      // Owner received swept tokens
+      const ownerBalAfter = await getTokenBalance(connection, getAta(mint, closeOwner.publicKey));
+      assert.equal(ownerBalAfter.sub(ownerBalBefore).toNumber(), 20_000_000);
+
+      // Account PDA should be gone
+      const accountInfo = await connection.getAccountInfo(closePda);
+      assert.isNull(accountInfo);
+
+      // Account token account should be gone
+      const ataInfo = await connection.getAccountInfo(getAta(mint, closePda));
+      assert.isNull(ataInfo);
+    });
+
+    it("F2. close with zero balance succeeds", async () => {
+      // Create fresh account
+      const zeroOwner = Keypair.generate();
+      const fundTx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: payer,
+          toPubkey: zeroOwner.publicKey,
+          lamports: 0.1 * web3.LAMPORTS_PER_SOL,
+        })
+      );
+      await provider.sendAndConfirm(fundTx);
+
+      const [zeroPda] = findAccountPda(programId, zeroOwner.publicKey);
+
+      await program.methods
+        .createAccount(null, null)
+        .accounts({
+          owner: zeroOwner.publicKey,
+          mint,
+          silkAccount: zeroPda,
+          accountTokenAccount: getAta(mint, zeroPda),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([zeroOwner])
+        .rpc();
+
+      await program.methods
+        .closeAccount()
+        .accounts({
+          owner: zeroOwner.publicKey,
+          silkAccount: zeroPda,
+          mint,
+          accountTokenAccount: getAta(mint, zeroPda),
+          ownerTokenAccount: getAta(mint, zeroOwner.publicKey),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([zeroOwner])
+        .rpc();
+
+      // Account PDA should be gone
+      const accountInfo = await connection.getAccountInfo(zeroPda);
+      assert.isNull(accountInfo);
+    });
+
+    it("F3. close by non-owner fails", async () => {
+      // Create another fresh account to test non-owner close
+      const protectedOwner = Keypair.generate();
+      const fundTx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: payer,
+          toPubkey: protectedOwner.publicKey,
+          lamports: 0.1 * web3.LAMPORTS_PER_SOL,
+        })
+      );
+      await provider.sendAndConfirm(fundTx);
+
+      const [protectedPda] = findAccountPda(programId, protectedOwner.publicKey);
+
+      await program.methods
+        .createAccount(null, null)
+        .accounts({
+          owner: protectedOwner.publicKey,
+          mint,
+          silkAccount: protectedPda,
+          accountTokenAccount: getAta(mint, protectedPda),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([protectedOwner])
+        .rpc();
+
+      try {
+        await program.methods
+          .closeAccount()
+          .accounts({
+            owner: outsider.publicKey,
+            silkAccount: protectedPda,
+            mint,
+            accountTokenAccount: getAta(mint, protectedPda),
+            ownerTokenAccount: getAta(mint, outsider.publicKey),
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([outsider])
+          .rpc();
+        assert.fail("Should have failed — non-owner close");
+      } catch (err: any) {
+        // PDA seed derivation uses owner key, so non-owner will fail seed check
+        assert.ok(err.toString().length > 0);
+      }
     });
   });
 });

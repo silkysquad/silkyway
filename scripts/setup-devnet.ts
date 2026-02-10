@@ -75,7 +75,7 @@ async function setup() {
   console.log(`System signer: ${systemSigner.publicKey.toBase58()}`);
 
   // Connection
-  const rpcUrl = process.env.RPC_URL || 'https://api.devnet.solana.com';
+  const rpcUrl = process.env.RPC_URL || 'http://localhost:8899/';
   const connection = new Connection(rpcUrl, 'confirmed');
   console.log(`Connected to ${rpcUrl}`);
 
@@ -158,7 +158,7 @@ async function setup() {
   const wallet = new Wallet(systemSigner);
   const provider = new AnchorProvider(connection, wallet, { commitment: 'confirmed' });
 
-  const idlPath = path.join(__dirname, '..', 'src', 'solana', 'handshake-idl.json');
+  const idlPath = path.join(__dirname, '..', 'apps', 'backend', 'src', 'solana', 'handshake-idl.json');
   const idl = JSON.parse(fs.readFileSync(idlPath, 'utf-8'));
   const program = new Program(idl as any, provider);
 

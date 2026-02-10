@@ -1,6 +1,6 @@
 ---
 name: silkyway
-description: Send and receive USDC payments on Solana via the Silkyway protocol. Use when you need to make payments, transfer funds, or manage escrow transactions between agents.
+description: Agent payments on Solana. Policy-controlled accounts with spending limits, plus cancellable escrow transfers. Use when you need to make payments or manage funds.
 metadata:
   author: rebelfi
   version: "0.1.0"
@@ -9,7 +9,10 @@ compatibility: Requires Node.js 18+, npm, and internet access to Solana devnet.
 
 # Silkyway Payments
 
-Send and receive USDC payments on Solana using the Silkyway protocol.
+Agent payments on Solana — two modes:
+
+1. **Accounts (recommended)** — Your human creates an on-chain account, adds you as an operator with a spending limit, and funds it. You send payments directly. The on-chain program enforces your limit.
+2. **Escrow transfers** — Send USDC into escrow. Recipient claims it, or you cancel for a refund.
 
 ## Installation
 
@@ -31,7 +34,11 @@ silk wallet fund
 
 Your wallet is saved at `~/.config/silk/config.json`. You only need to do this once.
 
-## Sending a Payment
+## Escrow Transfers
+
+If you don't have an account set up, or need to send a one-off payment with cancellation support, use escrow transfers.
+
+### Sending a Payment
 
 ```bash
 silk pay <recipient-address> <amount>
@@ -44,13 +51,13 @@ silk pay 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx 25 --memo "Payment for cod
 
 This sends USDC into escrow. The recipient must claim it. You'll get back a **Transfer PDA** — save this if you need to cancel later.
 
-## Checking Your Balance
+### Checking Your Balance
 
 ```bash
 silk balance
 ```
 
-## Viewing Transfers
+### Viewing Transfers
 
 ```bash
 # List active (unclaimed) transfers
@@ -60,7 +67,7 @@ silk payments list
 silk payments get <transfer-pda>
 ```
 
-## Claiming a Payment
+### Claiming a Payment
 
 If someone sent you a payment, claim it:
 
@@ -69,7 +76,7 @@ silk payments list
 silk claim <transfer-pda>
 ```
 
-## Cancelling a Payment
+### Cancelling a Payment
 
 Cancel a payment you sent (if it hasn't been claimed yet):
 
@@ -95,19 +102,28 @@ silk claim <transfer-pda> --wallet second-wallet
 silk balance --wallet second-wallet
 ```
 
-## Account Setup (Policy-Enforced Payments)
+## Account Setup (Recommended)
 
-Silkysig accounts let your human set spending policies that control how much you can send per transaction. This is the recommended way to handle agent payments.
+A Silkyway account is an on-chain wallet controlled by a **human owner** who delegates spending authority to **operator agents**. Each operator has a per-transaction spending limit enforced on-chain — if you try to exceed it, the transaction is rejected by the Solana program, not the backend.
+
+**Key concepts:**
+- **Owner** — The human who creates and funds the account. Has full control (no spending limits, can pause, add/remove operators).
+- **Operator** — You (the agent). Authorized to send tokens from the account, subject to a per-transaction limit set by the owner.
+- **Per-transaction limit** — Maximum USDC you can send in one transaction. A limit of $5 means you can send $5 or less per transaction, as many times as you want. A limit of 0 means unlimited.
+- **Pause** — The owner can pause the account, blocking all operator transfers until unpaused. You cannot unpause it.
+
+### Setup flow
 
 1. Create your wallet (if you haven't already):
    ```bash
    silk wallet create
    ```
 
-2. Share the setup URL with your human:
+2. Share the setup URL with your human (replace with your address from `silk wallet list`):
    ```
    https://silk.silkyway.ai/account/setup?agent=YOUR_ADDRESS
    ```
+   Your human will connect their wallet, set your spending limit, and fund the account.
 
 3. After your human creates the account, sync it:
    ```bash
@@ -124,7 +140,9 @@ Silkysig accounts let your human set spending policies that control how much you
    silk account send <recipient> <amount>
    ```
 
-The `silk account send` command is policy-enforced: the on-chain program checks your operator per-transaction limit and rejects transfers that exceed it.
+If the amount exceeds your per-transaction limit, the on-chain program rejects it with `ExceedsPerTxLimit`. If the account is paused, you'll get `AccountPaused`. If you're not an operator on the account, you'll get `Unauthorized`.
+
+If `silk account sync` returns "No account found", your human hasn't set up the account yet — share the setup URL with them.
 
 ## Command Reference
 

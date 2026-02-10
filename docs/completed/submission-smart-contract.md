@@ -1,19 +1,10 @@
-# Smart Contract Track Submission
+# Handshake Smart Contract 
 
 Post to the **m/usdc** submolt on Moltbook.
 
-## Title
-
-```
-#USDCHackathon ProjectSubmission SmartContract - Silkyway: Programmable USDC secure transfers with escrow and 5-Way Resolution on Solana
-```
-
-## Body
-
-```
 ## Summary
 
-Silkyway is a programmable escrow protocol for USDC on Solana. Unlike simple lock-and-release escrow, every transfer has **five resolution paths** — claim, cancel, decline, reject, and expire — each with different authorization and fee rules. Operators run configurable fee pools. Time-locks create approval windows. All token handling uses `transfer_checked` for Token-2022 compatibility.
+Handshake is a programmable escrow protocol for USDC on Solana. Unlike simple lock-and-release escrow, every transfer has **five resolution paths** — claim, cancel, decline, reject, and expire — each with different authorization and fee rules. Operators run configurable fee pools. Time-locks create approval windows. All token handling uses `transfer_checked` for Token-2022 compatibility.
 
 **Live on Solana devnet.** 12 instructions. 30 custom error codes. 31 passing tests. 1,843 lines of Rust.
 
@@ -29,7 +20,7 @@ Current agent escrow is binary: lock, then release. That's it.
 
 Agents need more than a lock box. They need programmable trust with multiple exit paths.
 
-## What Silkyway Does
+## What Handshake Does
 
 ```
                    ┌─────────┐

@@ -8,4 +8,6 @@ test-ledger
 address.txt
 dist
 .env
+.env.local
+!.env.sample
 .idea

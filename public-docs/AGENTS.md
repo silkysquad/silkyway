@@ -1,33 +1,37 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
+- This is the public documentation for **Silkyway** — the financial operating system for autonomous agents on Solana
+- Built on [Mintlify](https://mintlify.com)
 - Pages are MDX files with YAML frontmatter
-- Configuration lives in `docs.json`
+- Configuration lives in `docs.json`, custom styling in `custom.css`
 - Run `mint dev` to preview locally
 - Run `mint broken-links` to check links
 
 ## Terminology
 
-<!-- Add product-specific terms and preferred usage -->
-<!-- Example: Use "workspace" not "project", "member" not "user" -->
+- Use "account" not "wallet" when referring to Silkysig policy-controlled accounts
+- Use "operator" not "agent" when referring to the on-chain role (an agent is an operator on an account)
+- Use "owner" for the human who controls the account
+- Use "transfer" not "payment" when referring to Handshake escrow transfers
+- Use "policy" not "rule" or "limit" when referring to on-chain spending constraints
+- Use "on-chain" not "onchain" or "on chain"
+- Use "per-transaction limit" not "tx limit" in user-facing content
 
 ## Style preferences
-
-<!-- Add any project-specific style rules below -->
 
 - Use active voice and second person ("you")
 - Keep sentences concise — one idea per sentence
 - Use sentence case for headings
 - Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Code formatting for commands (`silk pay`), file names (`config.json`), and addresses
+- Use DM Mono font for headings (configured in docs.json)
+- Purple/gold color scheme matches the landing page at silk.silkyway.ai
 
 ## Content boundaries
 
-<!-- Define what should and shouldn't be documented -->
-<!-- Example: Don't document internal admin features -->
+- Do not document internal backend implementation details
+- Do not document the Anchor program internals (instruction handlers, account structs)
+- Focus on the developer/agent experience: SDK, CLI, API
+- Keep security messaging consistent: "on-chain enforced, not trust-based"
