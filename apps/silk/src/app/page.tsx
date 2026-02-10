@@ -8,6 +8,7 @@ import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useWalletActions } from '@/_jotai/wallet/wallet.actions';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { walletBalanceAtom, isLoadingBalanceAtom } from '@/_jotai/wallet/wallet.state';
+import { solscanUrl } from '@/lib/solscan';
 import { transfersAtom, isLoadingTransfersAtom } from '@/_jotai/transfer/transfer.state';
 
 const WalletMultiButton = dynamic(
@@ -79,7 +80,7 @@ export default function HomePage() {
           <footer className="absolute bottom-8 text-center">
             <div className="text-[0.6rem] uppercase tracking-[0.2em] text-nebula-purple/40">Program</div>
             <a
-              href="https://solscan.io/account/HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg?cluster=devnet"
+              href={solscanUrl('HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg', 'account')}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[0.65rem] tracking-[0.03em] text-star-white/20 transition-colors hover:text-solar-gold/60"

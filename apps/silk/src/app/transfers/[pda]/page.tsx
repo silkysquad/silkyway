@@ -7,6 +7,8 @@ import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { api } from '@/lib/api';
 import { toast } from 'react-toastify';
+import { SolscanLink } from '@/components/SolscanLink';
+import { solscanUrl } from '@/lib/solscan';
 import type { TransferInfo } from '@silkyway/sdk/dist/transfers.js';
 
 export default function TransferDetailPage() {
@@ -42,7 +44,9 @@ export default function TransferDetailPage() {
       const { transaction } = await claimTransfer(publicKey.toBase58(), transfer.transferPda);
       toast.info('Please approve the transaction in your wallet...');
       const txid = await signAndSubmit(transaction);
-      toast.success(`Transfer claimed! TX: ${txid.slice(0, 8)}...`);
+      toast.success(
+        <span>Transfer claimed! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
       fetchTransfer();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to claim transfer';
@@ -59,7 +63,9 @@ export default function TransferDetailPage() {
       const { transaction } = await cancelTransfer(publicKey.toBase58(), transfer.transferPda);
       toast.info('Please approve the transaction in your wallet...');
       const txid = await signAndSubmit(transaction);
-      toast.success(`Transfer cancelled! TX: ${txid.slice(0, 8)}...`);
+      toast.success(
+        <span>Transfer cancelled! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
       fetchTransfer();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to cancel transfer';
@@ -198,14 +204,7 @@ function TxLink({ label, txid }: { label: string; txid: string }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-[0.75rem] uppercase tracking-[0.1em] text-star-white/30">{label}</span>
-      <a
-        href={`https://solscan.io/tx/${txid}?cluster=devnet`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[0.75rem] text-nebula-purple underline underline-offset-4 transition-colors hover:text-solar-gold"
-      >
-        {txid.slice(0, 8)}...{txid.slice(-8)}
-      </a>
+      <SolscanLink address={txid} type="tx" />
     </div>
   );
 }

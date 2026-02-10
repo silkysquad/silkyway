@@ -8,6 +8,9 @@ import { useAccountActions } from '@/_jotai/account/account.actions';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { api } from '@/lib/api';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
+import { SolscanLink } from '@/components/SolscanLink';
+import { solscanUrl } from '@/lib/solscan';
 
 type Step = 'connect' | 'configure' | 'fund' | 'done';
 
@@ -93,7 +96,9 @@ function AccountSetupContent() {
       });
       toast.info('Please approve the transaction in your wallet...');
       const txid = await signAndSubmit(transaction);
-      toast.success(`Account created! TX: ${txid.slice(0, 8)}...`);
+      toast.success(
+        <span>Account created! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
       setAccountPda(pda);
       setStep('fund');
     } catch (err: unknown) {
@@ -129,7 +134,9 @@ function AccountSetupContent() {
       });
       toast.info('Please approve the transaction in your wallet...');
       const txid = await signAndSubmit(transaction);
-      toast.success(`Account funded! TX: ${txid.slice(0, 8)}...`);
+      toast.success(
+        <span>Account funded! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
       setStep('done');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fund account';
@@ -314,15 +321,15 @@ function AccountSetupContent() {
             <div className="space-y-3">
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Account</span>
-                <span className="font-mono text-star-white/70">{truncate(accountPda)}</span>
+                <SolscanLink address={accountPda} type="account" />
               </div>
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Owner</span>
-                <span className="font-mono text-star-white/70">{truncate(walletAddress)}</span>
+                <SolscanLink address={walletAddress} type="account" />
               </div>
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Operator</span>
-                <span className="font-mono text-star-white/70">{truncate(agentParam!)}</span>
+                <SolscanLink address={agentParam!} type="account" />
               </div>
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Balance</span>
@@ -342,6 +349,13 @@ function AccountSetupContent() {
                 <p className="text-star-white/30 italic">&nbsp;&nbsp;&nbsp;(Watch what happens.)</p>
               </div>
             </div>
+
+            <Link
+              href="/account"
+              className="mt-2 flex h-10 w-full items-center justify-center border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)]"
+            >
+              Go to Account →
+            </Link>
           </div>
         )}
       </div>
