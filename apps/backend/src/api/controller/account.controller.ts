@@ -1,0 +1,150 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  HttpCode,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
+import { PublicKey } from '@solana/web3.js';
+import { AccountService } from '../service/account.service';
+
+@Controller('api/account')
+export class AccountController {
+  private readonly logger = new Logger(AccountController.name);
+
+  constructor(private readonly accountService: AccountService) {}
+
+  @Get('by-operator/:pubkey')
+  async getByOperator(@Param('pubkey') pubkey: string) {
+    this.validatePubkey(pubkey, 'pubkey');
+
+    const results = await this.accountService.getAccountsByOperator(pubkey);
+
+    const accounts = results.map((r) => {
+      const operatorPubkey = new PublicKey(pubkey);
+      let operatorSlot: { index: number; perTxLimit: string; dailyLimit: string } | null = null;
+
+      for (let i = 0; i < r.account.operatorCount; i++) {
+        const slot = r.account.operators[i];
+        if (slot.pubkey.equals(operatorPubkey)) {
+          operatorSlot = {
+            index: i,
+            perTxLimit: slot.perTxLimit.toString(),
+            dailyLimit: slot.dailyLimit.toString(),
+          };
+          break;
+        }
+      }
+
+      return {
+        pda: r.pda.toBase58(),
+        owner: r.account.owner.toBase58(),
+        mint: r.account.mint.toBase58(),
+        mintDecimals: r.mintDecimals,
+        isPaused: r.account.isPaused,
+        balance: r.balance,
+        operatorSlot,
+      };
+    });
+
+    return { ok: true, data: { accounts } };
+  }
+
+  @Get(':pda')
+  async getAccount(@Param('pda') pda: string) {
+    this.validatePubkey(pda, 'pda');
+
+    const result = await this.accountService.getAccount(pda);
+    if (!result) {
+      throw new NotFoundException({ ok: false, error: 'ACCOUNT_NOT_FOUND', message: 'Account not found' });
+    }
+
+    const operators = [];
+    for (let i = 0; i < result.account.operatorCount; i++) {
+      const slot = result.account.operators[i];
+      operators.push({
+        index: i,
+        pubkey: slot.pubkey.toBase58(),
+        perTxLimit: slot.perTxLimit.toString(),
+        dailyLimit: slot.dailyLimit.toString(),
+        dailySpent: slot.dailySpent.toString(),
+        lastReset: slot.lastReset.toString(),
+      });
+    }
+
+    return {
+      ok: true,
+      data: {
+        pda: result.pda,
+        owner: result.account.owner.toBase58(),
+        mint: result.account.mint.toBase58(),
+        mintDecimals: result.mintDecimals,
+        isPaused: result.account.isPaused,
+        balance: result.balance,
+        operators,
+      },
+    };
+  }
+
+  @Post('create')
+  @HttpCode(200)
+  async createAccount(
+    @Body() body: { owner: string; mint: string; operator?: string; perTxLimit?: number },
+  ) {
+    this.validatePubkey(body.owner, 'owner');
+    this.validatePubkey(body.mint, 'mint');
+    if (body.operator) this.validatePubkey(body.operator, 'operator');
+    if (body.perTxLimit != null && body.perTxLimit < 0) {
+      throw new BadRequestException({ ok: false, error: 'INVALID_LIMIT', message: 'perTxLimit must be >= 0' });
+    }
+
+    const data = await this.accountService.buildCreateAccountTx(body);
+    return { ok: true, data };
+  }
+
+  @Post('deposit')
+  @HttpCode(200)
+  async deposit(
+    @Body() body: { depositor: string; accountPda: string; amount: number },
+  ) {
+    this.validatePubkey(body.depositor, 'depositor');
+    this.validatePubkey(body.accountPda, 'accountPda');
+    if (!body.amount || body.amount <= 0) {
+      throw new BadRequestException({ ok: false, error: 'INVALID_AMOUNT', message: 'Amount must be positive' });
+    }
+
+    const data = await this.accountService.buildDepositTx(body);
+    return { ok: true, data };
+  }
+
+  @Post('transfer')
+  @HttpCode(200)
+  async transfer(
+    @Body() body: { signer: string; accountPda: string; recipient: string; amount: number },
+  ) {
+    this.validatePubkey(body.signer, 'signer');
+    this.validatePubkey(body.accountPda, 'accountPda');
+    this.validatePubkey(body.recipient, 'recipient');
+    if (!body.amount || body.amount <= 0) {
+      throw new BadRequestException({ ok: false, error: 'INVALID_AMOUNT', message: 'Amount must be positive' });
+    }
+
+    const data = await this.accountService.buildTransferFromAccountTx(body);
+    return { ok: true, data };
+  }
+
+  private validatePubkey(value: string, field: string) {
+    if (!value) {
+      throw new BadRequestException({ ok: false, error: 'MISSING_FIELD', message: `${field} is required` });
+    }
+    try {
+      new PublicKey(value);
+    } catch {
+      throw new BadRequestException({ ok: false, error: 'INVALID_PUBKEY', message: `${field} is not a valid public key` });
+    }
+  }
+}

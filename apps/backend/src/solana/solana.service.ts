@@ -12,9 +12,11 @@ import {
   getAccount,
 } from '@solana/spl-token';
 import { HandshakeClient, generateNamedPoolId } from './handshake-client';
+import { SilkysigClient } from './silkysig-client';
 import { Token } from '../db/models/Token';
 import { Pool } from '../db/models/Pool';
 import * as idl from './handshake-idl.json';
+import * as silkysigIdl from './silkysig-idl.json';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -25,6 +27,7 @@ export class SolanaService implements OnModuleInit {
 
   private connection: Connection;
   private handshakeClient: HandshakeClient;
+  private silkysigClient: SilkysigClient;
   private systemSigner: Keypair;
 
   // USDC faucet (system signer is the mint authority)
@@ -71,6 +74,15 @@ export class SolanaService implements OnModuleInit {
 
     this.handshakeClient = new HandshakeClient(program);
     this.logger.log(`Solana connected to ${rpcUrl}, program ${programId}`);
+
+    // Initialize Silkysig program
+    const silkysigProgramId = this.configService.get<string>(
+      'SILKYSIG_PROGRAM_ID',
+      '8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs',
+    );
+    const silkysigProgram = new Program(silkysigIdl as any, provider);
+    this.silkysigClient = new SilkysigClient(silkysigProgram);
+    this.logger.log(`Silkysig program ${silkysigProgramId}`);
 
     // Load USDC mint config (system signer is the mint authority)
     const usdcMint = this.configService.get<string>('USDC_MINT_ADDRESS');
@@ -148,6 +160,10 @@ export class SolanaService implements OnModuleInit {
 
   getHandshakeClient(): HandshakeClient {
     return this.handshakeClient;
+  }
+
+  getSilkysigClient(): SilkysigClient {
+    return this.silkysigClient;
   }
 
   getSystemSigner(): Keypair {
