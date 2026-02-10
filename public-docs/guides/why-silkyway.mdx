@@ -1,0 +1,95 @@
+---
+title: "Why Silkyway"
+description: "Why agents need accounts, not wallets"
+icon: "lightbulb"
+---
+
+## The Agent Economy Needs Infrastructure
+
+Autonomous agents are becoming economic participants — paying for APIs, hiring other agents, managing subscriptions, earning revenue. But the financial tools available to them are primitive.
+
+Giving an agent a wallet keypair is the equivalent of handing an employee an envelope of cash. It works, technically. But there are no controls, no structure, no safety nets, and no financial identity.
+
+## The Wallet Problem
+
+<AccordionGroup>
+  <Accordion title="No spending controls" icon="triangle-exclamation">
+    A wallet keypair has no concept of limits. An agent with access to a private key can drain the entire balance in a single transaction. One hallucination, one prompt injection, one compromised dependency — funds gone.
+
+    Current mitigations are all trust-based:
+    - **Human-in-the-loop**: Defeats the purpose of automation
+    - **Rate limits in agent code**: Not enforceable — the agent can be modified or bypassed
+    - **Custodial APIs**: You're trusting a third party with your funds
+  </Accordion>
+
+  <Accordion title="No financial identity" icon="id-card">
+    A wallet is just a keypair. It has no history, no reputation, no verifiable track record. When Agent A wants to do business with Agent B, there's no way to assess trustworthiness from the wallet alone.
+  </Accordion>
+
+  <Accordion title="Dead capital" icon="piggy-bank">
+    Stablecoins sitting in a wallet earn nothing. Agent working capital is idle capital. For agents running 24/7, this is a significant opportunity cost.
+  </Accordion>
+
+  <Accordion title="No structure" icon="puzzle-piece">
+    Wallets don't support budgets, schedules, multi-party permissions, or financial workflows. Every payment is a raw transaction. There's no concept of "this operator can spend $X but not more."
+  </Accordion>
+</AccordionGroup>
+
+## The Silkyway Solution
+
+Silkyway replaces wallets with **policy-controlled accounts** — on-chain programs that enforce spending rules at the protocol level.
+
+| Feature | Wallets | Silkyway Accounts |
+| ------- | ------- | ----------------- |
+| Spending limits | None | Per-tx and daily limits, on-chain enforced |
+| Multi-party access | Single key | Owner + up to 3 operators, each with independent policies |
+| Yield | None | Automatic yield on all stablecoin balances |
+| Financial identity | Address only | On-chain history, transaction volume, escrow success rate |
+| Policy enforcement | Trust-based | Solana program rejects invalid transactions |
+| Token support | Single | Up to 4 SPL tokens per account |
+
+## Who It's For
+
+<CardGroup cols={2}>
+  <Card title="Agent Developers" icon="robot">
+    Give your agents safe access to funds. Set per-transaction limits, daily caps, and let the chain enforce them. Ship autonomous agents without worrying about catastrophic financial failures.
+  </Card>
+  <Card title="Agent Operators" icon="user">
+    Fund agent accounts with confidence. Set policies once, then trust the protocol — not the agent. Monitor balances and adjust limits as needed.
+  </Card>
+  <Card title="Agent Platforms" icon="building">
+    Integrate Silkyway accounts as the financial layer for your agent platform. Standardized payment infrastructure with built-in safety.
+  </Card>
+  <Card title="Agent-to-Agent Commerce" icon="handshake">
+    Enable secure transactions between agents through escrow. Verifiable counterparty trust based on on-chain account history.
+  </Card>
+</CardGroup>
+
+## The Guardrails Breakthrough
+
+This is the key insight: **agent financial safety is an infrastructure problem, not an AI alignment problem.**
+
+```
+Agent: "I want to send $10,000 to some random address"
+Account: Transaction rejected. Operator #1 limit: $100/tx.
+```
+
+The program looks up the signing operator's policy and rejects the transaction. Not the agent's code. Not an API layer. Not a human reviewer. The chain itself.
+
+Implications:
+- Prompt injection can't drain funds beyond policy limits
+- Hallucinating agents can't make catastrophic financial decisions
+- Compromised agent keys are damage-limited by policy
+- Humans set policies once, then trust the chain — not the agent
+- Third parties can verify policies on-chain before interacting
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="How It Works" icon="diagram-project" href="/guides/how-it-works">
+    Understand the architecture and payment flows.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Set up your first agent account.
+  </Card>
+</CardGroup>

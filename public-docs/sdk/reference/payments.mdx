@@ -1,0 +1,160 @@
+---
+title: "silk pay / claim / cancel"
+description: "Escrow payments through the Handshake system"
+icon: "arrow-right-arrow-left"
+---
+
+## Overview
+
+The payment commands use the Handshake escrow system for peer-to-peer token transfers. Tokens move to escrow on send, and the recipient claims them. Either party can inspect transfer status at any time.
+
+## Commands
+
+### `silk pay`
+
+Create an escrow transfer. Tokens move from your wallet to the Handshake escrow pool.
+
+```bash
+silk pay <recipient> <amount> [--memo <text>] [--wallet <label>]
+```
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `recipient` | Yes | Solana address of the recipient |
+| `amount` | Yes | Amount in USDC |
+| `--memo <text>` | No | Optional memo attached to the transfer |
+| `--wallet <label>` | No | Specify which wallet to send from |
+
+```bash
+silk pay 7xKXzM8q... 10 --memo "data analysis job"
+```
+
+```
+✓ Transfer created
+  Transfer PDA: 4bHUkQ9bR3mFVDg...
+  Amount: 10 USDC
+  Recipient: 7xKXzM8q...
+  Status: Active (awaiting claim)
+```
+
+The transfer PDA is the unique identifier for this escrow. Save it to claim or cancel later.
+
+---
+
+### `silk claim`
+
+Claim an incoming escrow transfer. Tokens move from escrow to your wallet.
+
+```bash
+silk claim <transferPda> [--wallet <label>]
+```
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `transferPda` | Yes | The transfer PDA to claim |
+| `--wallet <label>` | No | Specify which wallet to claim with (must be the recipient) |
+
+```bash
+silk claim 4bHUkQ9bR3mFVDg...
+```
+
+```
+✓ Transfer claimed
+  Amount: 10 USDC
+  From: Ax7kQ9bR...
+```
+
+<Warning>
+  Only the designated recipient can claim a transfer. Attempting to claim with a different wallet will fail with `UnauthorizedClaimer`.
+</Warning>
+
+---
+
+### `silk cancel`
+
+Cancel an outgoing escrow transfer before the recipient claims. Tokens return to your wallet.
+
+```bash
+silk cancel <transferPda> [--wallet <label>]
+```
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `transferPda` | Yes | The transfer PDA to cancel |
+| `--wallet <label>` | No | Specify which wallet to cancel with (must be the sender) |
+
+```bash
+silk cancel 4bHUkQ9bR3mFVDg...
+```
+
+```
+✓ Transfer cancelled
+  Amount: 10 USDC returned to your wallet
+```
+
+---
+
+### `silk payments list`
+
+List all transfers where your wallet is the sender or recipient.
+
+```bash
+silk payments list [--wallet <label>]
+```
+
+```bash
+silk payments list
+```
+
+```
+  PDA              Amount   Direction  Status     Memo
+  4bHUkQ9b...      10 USDC  Sent       Active     "data analysis job"
+  9aE5kBqR...       5 USDC  Received   Claimed    "payment for services"
+  2xMNpQ7r...       3 USDC  Sent       Cancelled  "wrong address"
+```
+
+---
+
+### `silk payments get`
+
+Get full details of a specific transfer.
+
+```bash
+silk payments get <transferPda>
+```
+
+```bash
+silk payments get 4bHUkQ9bR3mFVDg...
+```
+
+```
+Transfer: 4bHUkQ9bR3mFVDg...
+  Sender:    Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+  Recipient: 7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr
+  Amount:    10 USDC
+  Memo:      "data analysis job"
+  Status:    Active
+  Created:   2025-01-15T10:30:00Z
+```
+
+## Transfer Lifecycle
+
+```
+silk pay → Active (in escrow)
+             │
+             ├── silk claim → Claimed (recipient got tokens)
+             ├── silk cancel → Cancelled (sender got tokens back)
+             ├── (expired) → Expired (claim window passed)
+             └── (rejected) → Rejected (pool operator intervened)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Account Commands" icon="building-columns" href="/sdk/reference/account">
+    Policy-controlled account operations.
+  </Card>
+  <Card title="Config" icon="gear" href="/sdk/reference/config">
+    SDK configuration and API endpoints.
+  </Card>
+</CardGroup>

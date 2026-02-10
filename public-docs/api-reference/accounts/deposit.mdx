@@ -1,0 +1,50 @@
+---
+title: "Deposit"
+description: "Deposit tokens into a Silkysig account"
+---
+
+## `POST /api/account/deposit`
+
+Builds an unsigned transaction that deposits tokens into a Silkysig account. Anyone can deposit — not just the owner.
+
+### Request Body
+
+<ParamField body="depositor" type="string" required>
+  Depositor's Solana wallet address (the wallet sending tokens).
+</ParamField>
+
+<ParamField body="accountPda" type="string" required>
+  The Silkysig account PDA to deposit into.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount in tokens (e.g., `50` for 50 USDC).
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction.
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/account/deposit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "depositor": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "accountPda": "9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "amount": 50
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction..."
+}
+```
+
+<Info>
+  Deposited tokens begin earning yield immediately.
+</Info>

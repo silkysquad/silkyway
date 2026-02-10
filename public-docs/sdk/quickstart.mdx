@@ -1,0 +1,193 @@
+---
+title: "SDK Quickstart"
+description: "Install the SDK and make your first payment"
+icon: "rocket"
+---
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install -g @silkyway/sdk
+```
+
+```bash yarn
+yarn global add @silkyway/sdk
+```
+</CodeGroup>
+
+Verify:
+
+```bash
+silk --version
+```
+
+## Create a Wallet
+
+```bash
+silk wallet create my-agent
+```
+
+```
+Wallet created: Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+Stored at: ~/.config/silk/config.json
+```
+
+This generates a Solana keypair and stores it locally. The first wallet created becomes the default.
+
+## Fund the Wallet (Devnet)
+
+```bash
+silk wallet fund --sol --usdc
+```
+
+```
+✓ 2 SOL airdropped
+✓ 100 USDC minted
+```
+
+<Info>
+  The faucet is devnet-only, rate-limited to one request per 10 minutes.
+</Info>
+
+## Check Your Balance
+
+```bash
+silk balance
+```
+
+```
+Wallet: Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+SOL:  2.000000
+USDC: 100.000000
+```
+
+## Make an Escrow Payment
+
+Send USDC through the Handshake escrow system:
+
+```bash
+silk pay <recipient_address> 10 --memo "hello from my agent"
+```
+
+```
+✓ Transfer created
+  Transfer PDA: 4bHUkQ9...
+  Amount: 10 USDC
+  Status: Active (awaiting claim)
+```
+
+The tokens are now in escrow. The recipient can claim them:
+
+```bash
+silk claim 4bHUkQ9...
+```
+
+Or you can cancel before they claim:
+
+```bash
+silk cancel 4bHUkQ9...
+```
+
+## Set Up a Policy-Controlled Account
+
+For production use, agents should operate through a Silkysig account with human-set spending limits.
+
+### 1. Share the setup link with the human owner
+
+```
+https://silk.silkyway.ai/account/setup?agent=YOUR_WALLET_ADDRESS
+```
+
+The human will:
+- Connect their Solana wallet (becomes owner)
+- Set per-transaction spending limit
+- Deposit stablecoins
+
+### 2. Sync the account
+
+```bash
+silk account sync
+```
+
+```
+✓ Account found: 9aE5kBqR...
+  Owner: 7xKXz...
+  Operator: Ax7kQ9... (you)
+  Balance: 50.00 USDC
+  Policy: max $10.00/tx
+```
+
+### 3. Spend from the account
+
+```bash
+silk account send <recipient> 5 --memo "within limits"
+```
+
+```
+✓ 5 USDC sent to <recipient>
+  Transaction: 5UfDuXsr...
+```
+
+Try exceeding the limit:
+
+```bash
+silk account send <recipient> 25 --memo "over limit"
+```
+
+```
+✗ REJECTED: amount $25.00 exceeds per-transaction limit of $10.00
+```
+
+## Multiple Wallets
+
+You can manage multiple wallets and specify which to use:
+
+```bash
+silk wallet create second-agent
+silk wallet list
+```
+
+```
+  my-agent      Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4 (default)
+  second-agent  7xKXzM8q...
+```
+
+Use `--wallet` to specify a non-default wallet:
+
+```bash
+silk balance --wallet second-agent
+silk pay <recipient> 5 --wallet second-agent
+```
+
+## Configuration
+
+The SDK stores configuration at `~/.config/silk/config.json`:
+
+```bash
+# View current API endpoint
+silk config get-api-url
+
+# Override API endpoint (for local development)
+silk config set-api-url http://localhost:3000
+
+# Reset to default
+silk config reset-api-url
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Wallet Reference" icon="wallet" href="/sdk/reference/wallet">
+    Complete wallet management commands.
+  </Card>
+  <Card title="Account Reference" icon="building-columns" href="/sdk/reference/account">
+    Silkysig account operations.
+  </Card>
+  <Card title="Payments Reference" icon="arrow-right-arrow-left" href="/sdk/reference/payments">
+    Pay, claim, cancel, and query transfers.
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/sdk/error-handling">
+    Error codes and retry patterns.
+  </Card>
+</CardGroup>

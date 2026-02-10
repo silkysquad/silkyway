@@ -1,0 +1,48 @@
+---
+title: "Cancel Transfer"
+description: "Cancel an escrow transfer and reclaim tokens"
+---
+
+## `POST /api/tx/cancel-transfer`
+
+Builds an unsigned transaction that cancels an escrow transfer. Tokens return from the Handshake escrow pool to the sender's wallet.
+
+### Request Body
+
+<ParamField body="canceller" type="string" required>
+  Canceller's Solana wallet address. Must be the original sender of the transfer.
+</ParamField>
+
+<ParamField body="transferPda" type="string" required>
+  The transfer PDA to cancel.
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction.
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/tx/cancel-transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "canceller": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "transferPda": "4bHUkQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4"
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction..."
+}
+```
+
+### Errors
+
+| Code | Meaning |
+| ---- | ------- |
+| `TransferNotActive` | Transfer is not in `Active` status (already claimed, cancelled, etc.) |
+| `UnauthorizedCanceller` | Signer is not the original sender |

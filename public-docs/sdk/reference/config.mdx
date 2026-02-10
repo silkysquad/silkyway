@@ -1,0 +1,105 @@
+---
+title: "silk config"
+description: "SDK configuration management"
+icon: "gear"
+---
+
+## Overview
+
+The `silk config` commands manage the SDK's configuration, stored at `~/.config/silk/config.json`.
+
+## Commands
+
+### `silk config get-api-url`
+
+Display the current API endpoint.
+
+```bash
+silk config get-api-url
+```
+
+```
+API URL: https://silk.silkyway.ai
+```
+
+---
+
+### `silk config set-api-url`
+
+Override the API endpoint. Useful for local development or testing.
+
+```bash
+silk config set-api-url <url>
+```
+
+```bash
+silk config set-api-url http://localhost:3000
+```
+
+```
+✓ API URL set to: http://localhost:3000
+```
+
+---
+
+### `silk config reset-api-url`
+
+Reset the API endpoint to the default production URL.
+
+```bash
+silk config reset-api-url
+```
+
+```
+✓ API URL reset to: https://silk.silkyway.ai
+```
+
+## Config File Structure
+
+The full config file at `~/.config/silk/config.json`:
+
+```json
+{
+  "wallets": [
+    {
+      "label": "my-agent",
+      "address": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+      "privateKey": "base58-encoded-secret-key"
+    }
+  ],
+  "defaultWallet": "my-agent",
+  "apiUrl": "https://silk.silkyway.ai",
+  "account": {
+    "pda": "9aE5kBqR...",
+    "owner": "7xKXz...",
+    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "mintDecimals": 6,
+    "operatorIndex": 0,
+    "perTxLimit": 10000000,
+    "syncedAt": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+| Field | Description |
+| ----- | ----------- |
+| `wallets` | Array of locally stored Solana keypairs |
+| `defaultWallet` | Label of the wallet used by default |
+| `apiUrl` | Backend API endpoint |
+| `account` | Synced Silkysig account info (populated by `silk account sync`) |
+| `account.pda` | On-chain account address |
+| `account.owner` | Human owner's public key |
+| `account.mint` | Token mint address (e.g., USDC) |
+| `account.operatorIndex` | Which operator slot this wallet occupies (0-2) |
+| `account.perTxLimit` | Per-transaction limit in smallest token units |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Wallet Commands" icon="wallet" href="/sdk/reference/wallet">
+    Manage wallets stored in config.
+  </Card>
+  <Card title="SDK Introduction" icon="code" href="/sdk/introduction">
+    Overview of the SDK architecture.
+  </Card>
+</CardGroup>

@@ -1,0 +1,159 @@
+---
+title: "Quickstart"
+description: "Set up your first agent account in under 5 minutes"
+icon: "rocket"
+---
+
+This guide walks through the complete flow: create a wallet, set up a policy-controlled account, fund it, and make your first payment.
+
+## Prerequisites
+
+- Node.js 18+
+- A Solana wallet (Phantom, Solflare) for the human owner
+
+## Step 1: Install the SDK
+
+<CodeGroup>
+```bash npm
+npm install -g @silkyway/sdk
+```
+
+```bash yarn
+yarn global add @silkyway/sdk
+```
+</CodeGroup>
+
+Verify the installation:
+
+```bash
+silk --version
+```
+
+## Step 2: Create an Agent Wallet
+
+```bash
+silk wallet create my-agent
+```
+
+```
+Wallet created: Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+Stored at: ~/.config/silk/config.json
+```
+
+This generates a Solana keypair and stores it locally. This wallet will become the agent's operator key on the account.
+
+## Step 3: Fund the Wallet (Devnet)
+
+```bash
+silk wallet fund --sol --usdc
+```
+
+```
+✓ 2 SOL airdropped (for transaction fees)
+✓ 100 USDC minted (devnet faucet)
+```
+
+<Info>
+  The faucet is devnet-only and rate-limited to one request per 10 minutes per wallet.
+</Info>
+
+## Step 4: Set Up an Account (Human Side)
+
+The human owner creates the policy-controlled account. Have them visit:
+
+```
+https://silk.silkyway.ai/account/setup?agent=YOUR_AGENT_ADDRESS
+```
+
+On this page, the human will:
+1. Connect their Solana wallet (becomes the account owner)
+2. Set a per-transaction spending limit for the agent
+3. Sign the account creation transaction
+4. Deposit stablecoins into the account
+
+## Step 5: Sync the Account
+
+Once the human has created and funded the account:
+
+```bash
+silk account sync
+```
+
+```
+✓ Account found: 9aE5kBqR...
+  Owner: 7xKXz... (human)
+  Operator: Ax7kQ9... (you)
+  Balance: 5.0001 USDC (+$0.0001 yield)
+  Policy: max $5.00 per transaction
+```
+
+The SDK discovers the account by looking up your wallet address as an operator. Account info is stored in your local config.
+
+## Step 6: Check Account Status
+
+```bash
+silk account status
+```
+
+```
+Account: 9aE5kBqR...
+Owner: 7xKXz...
+Balance: 5.0002 USDC (+$0.0002 yield)
+APY: 5.2%
+Policy: max $5.00/tx
+```
+
+Notice the balance has already grown slightly from yield.
+
+## Step 7: Make a Payment
+
+Try sending an amount within your policy limits:
+
+```bash
+silk account send 7xKXz... 3 --memo "first payment"
+```
+
+```
+✓ 3 USDC sent to 7xKXz...
+  Transaction: 5UfDuXsr...
+```
+
+Now try exceeding your limit:
+
+```bash
+silk account send 7xKXz... 10 --memo "too much"
+```
+
+```
+✗ REJECTED by on-chain program: amount $10.00 exceeds per-transaction limit of $5.00.
+  Policy enforcement is on-chain — your funds are protected at the protocol level.
+```
+
+The chain rejected the transaction. Not your code. Not an API. The Solana program itself.
+
+## What Just Happened
+
+1. You created an agent wallet (operator key)
+2. A human created a policy-controlled account with your wallet as operator
+3. The human set a $5 per-transaction limit
+4. You operated within the account — the chain enforced the policy
+5. The account earned yield on the deposited stablecoins
+
+The human stays in control (owner). The agent operates within bounds (operator). The chain enforces everything (program).
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="SDK Quickstart" icon="code" href="/sdk/quickstart">
+    Deeper dive into SDK installation and configuration.
+  </Card>
+  <Card title="How It Works" icon="diagram-project" href="/guides/how-it-works">
+    Understand the full architecture.
+  </Card>
+  <Card title="Escrow Payments" icon="handshake" href="/sdk/reference/payments">
+    Learn about the Handshake escrow system for P2P payments.
+  </Card>
+  <Card title="API Reference" icon="terminal" href="/api-reference/introduction">
+    Integrate with the REST API directly.
+  </Card>
+</CardGroup>

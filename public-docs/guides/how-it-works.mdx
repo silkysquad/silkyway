@@ -1,0 +1,160 @@
+---
+title: "How It Works"
+description: "Architecture, payment flows, and policy enforcement"
+icon: "diagram-project"
+---
+
+## Architecture Overview
+
+Silkyway has two core on-chain programs and a backend API that ties them together:
+
+| Component | Purpose |
+| --------- | ------- |
+| **Silkysig** | Policy-controlled agent accounts. Human creates, sets limits, funds. Agent operates within bounds. |
+| **Handshake** | Escrow-based payment system. Sender deposits to escrow, recipient claims. |
+| **Backend API** | Transaction builder. Constructs unsigned transactions, never holds private keys. |
+| **SDK / CLI** | TypeScript client + `silk` CLI. Agents interact through this. |
+
+<Info>
+  The backend never holds private keys. It builds unsigned transactions that are signed client-side by the agent's SDK. Signing always happens locally.
+</Info>
+
+## Silkysig: Policy-Controlled Accounts
+
+Silkysig is the account layer. One account per human owner, stored as a PDA (Program Derived Address) on Solana.
+
+### Account Structure
+
+Each account contains:
+- **Owner** — the human with full control
+- **Up to 3 operator slots** — each with independent per-tx and daily spending limits
+- **Up to 4 token slots** — supporting any SPL token (USDC, USDT, PYUSD, etc.)
+- **Policy enforcement** — the program checks which operator is signing and applies that operator's limits
+
+### Account Lifecycle
+
+<Steps>
+  <Step title="Human creates account">
+    The human visits the setup page, connects their wallet, and creates an account PDA. They set the agent's spending policy (per-transaction limit) and optionally add the agent as the first operator.
+  </Step>
+  <Step title="Human deposits funds">
+    The human deposits stablecoins into the account. The first deposit of each token type lazy-initializes a token slot and associated token account (ATA).
+  </Step>
+  <Step title="Agent syncs">
+    The agent runs `silk account sync` to discover the account by its operator public key. The SDK stores the account PDA in local config.
+  </Step>
+  <Step title="Agent operates">
+    The agent sends payments via `silk account send`. Each transaction is checked on-chain against the operator's policy. Transactions that exceed limits are rejected by the Solana program.
+  </Step>
+  <Step title="Human adjusts">
+    The human can change operator policies, add or remove operators, or withdraw funds at any time. Owner operations bypass all policy checks.
+  </Step>
+</Steps>
+
+### Policy Enforcement
+
+When an operator submits a transaction, the Silkysig program:
+
+1. Identifies which operator slot matches the signer
+2. Loads that operator's `per_tx_limit` and `daily_spent` tracking
+3. Checks: does this transaction exceed the per-tx limit?
+4. Checks: does this push daily spending over the daily limit?
+5. If any check fails → **transaction rejected on-chain**
+6. If all checks pass → transfer executes, `daily_spent` updated
+
+```
+Operator #1 (Agent): per_tx_limit = $100, daily_limit = $500
+Transaction: send $150
+
+Program: Look up Operator #1 policy → $150 > $100 per_tx_limit
+Result: REJECTED (PolicyExceedsTxLimit)
+```
+
+<Warning>
+  Policy enforcement happens at the Solana program level. It cannot be bypassed by modifying agent code, API calls, or any off-chain component. This is the core safety guarantee.
+</Warning>
+
+## Handshake: Escrow Payments
+
+Handshake is the payment layer. It provides escrow-based token transfers between any two parties.
+
+### Transfer Lifecycle
+
+<Steps>
+  <Step title="Create transfer">
+    The sender creates an escrow transfer. Tokens move from the sender's wallet (or account) to the escrow pool. A transfer PDA is created with status `Active`.
+  </Step>
+  <Step title="Recipient claims">
+    The recipient sees the incoming transfer and claims it. Tokens move from the escrow pool to the recipient's wallet. Transfer status becomes `Claimed`.
+  </Step>
+  <Step title="Or sender cancels">
+    If the recipient hasn't claimed, the sender can cancel. Tokens return to the sender. Transfer status becomes `Cancelled`.
+  </Step>
+</Steps>
+
+### Transfer States
+
+| Status | Description |
+| ------ | ----------- |
+| `Active` | Tokens in escrow, waiting for recipient to claim |
+| `Claimed` | Recipient claimed the tokens |
+| `Cancelled` | Sender cancelled before claim |
+| `Rejected` | Pool operator rejected the transfer |
+| `Declined` | Recipient declined the transfer |
+| `Expired` | Claim window passed without action |
+
+### Claim Windows
+
+Transfers can optionally specify:
+- **`claimable_after`** — earliest time the recipient can claim
+- **`claimable_until`** — deadline after which the transfer expires
+
+This enables time-locked payments, milestone-based contracts, and scheduled disbursements.
+
+## Transaction Flow
+
+All transactions follow the same pattern:
+
+```
+Agent (SDK)                    Backend API                  Solana
+    │                              │                          │
+    ├── POST /api/tx/create-*  ──→ │                          │
+    │                              ├── Build unsigned TX       │
+    │   ← base64 transaction ─────┤                          │
+    │                              │                          │
+    ├── Sign locally               │                          │
+    │                              │                          │
+    ├── POST /api/tx/submit ─────→ │                          │
+    │                              ├── Submit signed TX ─────→│
+    │                              │                          ├── Execute
+    │                              │   ← confirmation ────────┤
+    │   ← txid ───────────────────┤                          │
+    │                              │                          │
+```
+
+1. SDK requests an unsigned transaction from the backend
+2. Backend constructs the transaction (never signs it)
+3. SDK signs locally with the agent's private key
+4. SDK submits the signed transaction through the backend
+5. Backend forwards to Solana, waits for confirmation
+
+<Info>
+  This pattern keeps private keys entirely on the agent side. The backend is a stateless transaction builder.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Set up your first agent account and make a payment.
+  </Card>
+  <Card title="SDK Introduction" icon="code" href="/sdk/introduction">
+    Install the SDK and explore the CLI commands.
+  </Card>
+  <Card title="API Reference" icon="terminal" href="/api-reference/introduction">
+    Integrate directly with the REST API.
+  </Card>
+  <Card title="Glossary" icon="book" href="/guides/glossary">
+    Key terms and concepts.
+  </Card>
+</CardGroup>

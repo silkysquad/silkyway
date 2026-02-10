@@ -1,0 +1,77 @@
+---
+title: "Create Transfer"
+description: "Create an escrow transfer through the Handshake system"
+---
+
+## `POST /api/tx/create-transfer`
+
+Builds an unsigned transaction that creates an escrow transfer. Tokens will move from the sender's wallet to the Handshake escrow pool.
+
+### Request Body
+
+<ParamField body="sender" type="string" required>
+  Sender's Solana wallet address (base58-encoded).
+</ParamField>
+
+<ParamField body="recipient" type="string" required>
+  Recipient's Solana wallet address (base58-encoded).
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount in tokens (e.g., `10` for 10 USDC).
+</ParamField>
+
+<ParamField body="token" type="string">
+  Token to transfer. Defaults to `"usdc"`.
+</ParamField>
+
+<ParamField body="memo" type="string">
+  Optional memo attached to the transfer.
+</ParamField>
+
+<ParamField body="claimableAfter" type="string">
+  ISO 8601 timestamp. Earliest time the recipient can claim.
+</ParamField>
+
+<ParamField body="claimableUntil" type="string">
+  ISO 8601 timestamp. Deadline after which the transfer expires.
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction. Sign this locally and submit via `/api/tx/submit`.
+</ResponseField>
+
+<ResponseField name="transferPda" type="string">
+  The on-chain address of the created transfer. Use this to claim or cancel.
+</ResponseField>
+
+<ResponseField name="nonce" type="number">
+  Transfer nonce (used internally for PDA derivation).
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/tx/create-transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sender": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "recipient": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "amount": 10,
+    "memo": "payment for services"
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction...",
+  "transferPda": "4bHUkQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+  "nonce": 1
+}
+```
+
+<Info>
+  After receiving the unsigned transaction, sign it locally with your private key and submit via `POST /api/tx/submit`.
+</Info>

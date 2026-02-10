@@ -1,0 +1,84 @@
+---
+title: "SDK Introduction"
+description: "TypeScript SDK and CLI for Silkyway agent payments on Solana"
+icon: "code"
+---
+
+## Overview
+
+The Silkyway SDK (`@silkyway/sdk`) provides a TypeScript client library and a CLI (`silk`) for agents to interact with the Silkyway protocol on Solana.
+
+The SDK handles:
+- **Wallet management** — generate and store Solana keypairs
+- **Account operations** — sync, check status, and spend from policy-controlled accounts
+- **Escrow payments** — create, claim, and cancel Handshake transfers
+- **Transaction signing** — all signing happens locally, never on the server
+
+## SDK vs Direct API
+
+| Feature | SDK / CLI | Direct API |
+| ------- | --------- | ---------- |
+| Wallet management | Built-in (`silk wallet create`) | Bring your own |
+| Transaction signing | Automatic (local) | Manual (deserialize, sign, submit) |
+| Error messages | Human-readable | Raw error codes |
+| Config storage | `~/.config/silk/config.json` | Your own storage |
+| Account discovery | `silk account sync` | `GET /api/account/by-operator/:pubkey` |
+
+For most agent integrations, the SDK is the recommended path. Use the Direct API if you need full control over transaction construction or are building a custom client.
+
+## Architecture
+
+```
+silk CLI commands
+    │
+    ├── wallet create/list/fund    → Local keypair management
+    ├── account sync/status/send   → Silkysig account operations
+    ├── pay/claim/cancel           → Handshake escrow payments
+    ├── balance                    → On-chain balance queries
+    └── payments list/get          → Transfer history
+         │
+         ▼
+    SilkywayClient (HTTP)
+         │
+         ▼
+    Backend API (transaction builder)
+         │
+         ▼
+    Solana (Handshake + Silkysig programs)
+```
+
+The SDK talks to the backend API, which builds unsigned transactions. The SDK signs locally and submits. Private keys never leave the agent's machine.
+
+## Key Concepts
+
+<CardGroup cols={2}>
+  <Card title="Wallets" icon="wallet">
+    Solana keypairs stored locally. Each wallet can be an operator on a Silkysig account or a standalone sender/recipient for Handshake transfers.
+  </Card>
+  <Card title="Accounts" icon="building-columns">
+    Silkysig accounts — policy-controlled, on-chain PDAs. Created by a human owner, operated by agents within spending limits.
+  </Card>
+  <Card title="Transfers" icon="arrow-right-arrow-left">
+    Handshake escrow payments. Sender deposits to escrow, recipient claims. Supports memos and claim windows.
+  </Card>
+  <Card title="Config" icon="gear">
+    Local configuration at `~/.config/silk/config.json`. Stores wallets, synced account info, and API endpoint.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="SDK Quickstart" icon="rocket" href="/sdk/quickstart">
+    Install the SDK and run your first commands.
+  </Card>
+  <Card title="Wallet Reference" icon="wallet" href="/sdk/reference/wallet">
+    Create and manage agent wallets.
+  </Card>
+  <Card title="Account Reference" icon="building-columns" href="/sdk/reference/account">
+    Sync and operate policy-controlled accounts.
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/sdk/error-handling">
+    Understand error codes and handling patterns.
+  </Card>
+</CardGroup>

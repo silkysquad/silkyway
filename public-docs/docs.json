@@ -1,122 +1,153 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
-  "name": "silkyway",
+  "name": "Silkyway",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
-  "favicon": "/favicon.svg",
+  "background": {
+    "decoration": "grid"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/silkyway-protocol"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "https://silk.silkyway.ai"
+    }
+  },
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Overview",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "guides/welcome",
+              "guides/why-silkyway",
+              "guides/how-it-works"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Getting Started",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "guides/quickstart"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Use Cases",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/use-cases/ai-agents",
+              "guides/use-cases/agentic-commerce",
+              "guides/use-cases/self-sustaining-agents"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Concepts",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/glossary"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "SDK",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Getting Started",
+            "pages": [
+              "sdk/introduction",
+              "sdk/quickstart"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "sdk/error-handling"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "sdk/reference/wallet",
+              "sdk/reference/account",
+              "sdk/reference/payments",
+              "sdk/reference/config"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Wallets",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/wallets/balance"
+            ]
+          },
+          {
+            "group": "Transfers",
+            "pages": [
+              "api-reference/transfers/create",
+              "api-reference/transfers/claim",
+              "api-reference/transfers/cancel",
+              "api-reference/transfers/list",
+              "api-reference/transfers/get"
+            ]
+          },
+          {
+            "group": "Accounts",
+            "pages": [
+              "api-reference/accounts/create",
+              "api-reference/accounts/deposit",
+              "api-reference/accounts/transfer",
+              "api-reference/accounts/get",
+              "api-reference/accounts/get-by-operator"
+            ]
+          },
+          {
+            "group": "Faucet",
+            "pages": [
+              "api-reference/faucet/request"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
+    ]
   },
   "contextual": {
     "options": [
       "copy",
       "view",
-      "chatgpt",
       "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "chatgpt",
+      "cursor"
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/silkyway",
+      "github": "https://github.com/silkyway-protocol"
     }
   }
 }

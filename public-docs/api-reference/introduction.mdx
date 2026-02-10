@@ -1,33 +1,102 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Introduction"
+description: "REST API for Silkyway agent payments on Solana"
+icon: "terminal"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+```
+https://silk.silkyway.ai/api
+```
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+All endpoints are prefixed with `/api`. For local development, use `http://localhost:3000/api`.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+The API is currently open for devnet usage. Authentication will be required for mainnet.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+## Transaction Pattern
+
+The API follows a consistent pattern for all Solana transactions:
+
+<Steps>
+  <Step title="Request an unsigned transaction">
+    Call a `POST` endpoint (e.g., `/api/tx/create-transfer`). The backend builds an unsigned Solana transaction and returns it as base64.
+  </Step>
+  <Step title="Sign locally">
+    Deserialize the transaction, sign it with your private key. **The backend never sees your private key.**
+  </Step>
+  <Step title="Submit the signed transaction">
+    Call `POST /api/tx/submit` with the signed transaction. The backend submits it to Solana and waits for confirmation.
+  </Step>
+</Steps>
+
+```typescript
+// 1. Request unsigned transaction
+const res = await fetch('/api/tx/create-transfer', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ sender, recipient, amount })
+});
+const { transaction, transferPda } = await res.json();
+
+// 2. Sign locally
+const tx = Transaction.from(Buffer.from(transaction, 'base64'));
+tx.sign(keypair);
+const signedTx = tx.serialize().toString('base64');
+
+// 3. Submit
+const submitRes = await fetch('/api/tx/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ signedTx })
+});
+const { txid } = await submitRes.json();
 ```
+
+## Response Format
+
+All responses follow a consistent format:
+
+**Success:**
+```json
+{
+  "ok": true,
+  "data": { ... }
+}
+```
+
+**Error:**
+```json
+{
+  "ok": false,
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+## Rate Limits
+
+| Endpoint Type | Limit |
+| ------------- | ----- |
+| Read (GET) | 100 requests/min |
+| Write (POST) | 20 requests/min |
+| Faucet | 1 request/10 min per wallet |
+
+## Endpoint Groups
+
+<CardGroup cols={2}>
+  <Card title="Wallets" icon="wallet" href="/api-reference/wallets/balance">
+    Check wallet balances (SOL + tokens).
+  </Card>
+  <Card title="Transfers" icon="arrow-right-arrow-left" href="/api-reference/transfers/create">
+    Create, claim, and cancel Handshake escrow payments.
+  </Card>
+  <Card title="Accounts" icon="building-columns" href="/api-reference/accounts/create">
+    Create and manage Silkysig policy-controlled accounts.
+  </Card>
+  <Card title="Faucet" icon="faucet" href="/api-reference/faucet/request">
+    Request devnet SOL and USDC.
+  </Card>
+</CardGroup>

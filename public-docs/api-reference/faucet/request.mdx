@@ -1,0 +1,59 @@
+---
+title: "Request Faucet"
+description: "Request devnet SOL and USDC tokens"
+---
+
+## `POST /api/tx/faucet`
+
+Airdrops SOL and/or mints devnet USDC to a wallet. Devnet only.
+
+### Request Body
+
+<ParamField body="wallet" type="string" required>
+  Solana wallet address to fund.
+</ParamField>
+
+<ParamField body="token" type="string" required>
+  What to fund: `"sol"`, `"usdc"`, or `"both"`.
+</ParamField>
+
+### Response
+
+<ResponseField name="sol" type="number">
+  Amount of SOL airdropped (if requested).
+</ResponseField>
+
+<ResponseField name="usdc" type="number">
+  Amount of USDC minted (if requested).
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/tx/faucet \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "token": "both"
+  }'
+```
+
+```json
+{
+  "sol": 2,
+  "usdc": 100
+}
+```
+
+### Rate Limiting
+
+<Warning>
+  The faucet is rate-limited to **one request per 10 minutes** per wallet address. Requests within the cooldown period will return a `RATE_LIMITED` error.
+</Warning>
+
+### Errors
+
+| Code | Meaning |
+| ---- | ------- |
+| `RATE_LIMITED` | Too many requests — wait 10 minutes |
+| `DEVNET_ONLY` | Faucet only works on devnet |

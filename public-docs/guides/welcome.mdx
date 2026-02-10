@@ -1,0 +1,100 @@
+---
+title: "Welcome to Silkyway"
+description: "The financial operating system for autonomous agents"
+icon: "hand-wave"
+---
+
+## The Problem
+
+Every agent wallet solution today gives the agent a raw keypair. Full control. No structure. This creates two unsolved problems:
+
+**Too much power.** The agent can drain the entire wallet at any time. One hallucination, one prompt injection, one bad API call — funds gone. Current solutions are all trust-based: human-in-the-loop approvals (defeats automation), rate limits in agent code (not enforceable), custodial APIs (trust the custodian).
+
+**Too little structure.** A wallet has no concept of budgets, schedules, permissions, or policies. It's a signing key with a balance. Asking an agent to manage money with a wallet is like giving an employee a personal checking account and calling it a company budget.
+
+## The Thesis
+
+**Agents don't need wallets. They need accounts.**
+
+A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enforces policies, and enables programmable financial workflows — all without trusting the agent, the human, or any third party.
+
+## Core Principles
+
+<CardGroup cols={2}>
+  <Card title="Safety Through Infrastructure" icon="shield">
+    Spending policies are enforced on-chain by the Solana program. Not in agent code. Not in an API layer. A prompt injection can't bypass what the chain itself enforces.
+  </Card>
+  <Card title="Human in the Kernel" icon="user-shield">
+    The human (owner) sets policies and maintains full control. The agent (operator) runs in "user space" within granted permissions. The Solana program is the kernel.
+  </Card>
+  <Card title="Yield by Default" icon="chart-line">
+    Every stablecoin in a Silkyway account earns yield automatically. Idle capital is working capital. Agents can self-sustain from returns alone.
+  </Card>
+  <Card title="Programmable Accounts" icon="gear">
+    Accounts support multiple operators, each with independent policies. Subscriptions, payroll, revenue splits — the account handles the financial workflow.
+  </Card>
+</CardGroup>
+
+## The Account Model
+
+A Silkyway account is not a keypair. It's a programmable, policy-controlled financial primitive:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Silkyway Account (on-chain PDA)                │
+│                                                 │
+│  Owner (human):  full control                   │
+│  Operators (up to 3, each with own policy):     │
+│    ├── AI Agent     → max $100/tx, $500/day     │
+│    ├── Yield Service → yield-only operations    │
+│    └── Payroll Bot  → $150/month to approved    │
+│                                                 │
+│  Token Balances (up to 4 SPL tokens):           │
+│    ├── USDC:  800 (earning yield)               │
+│    ├── USDT:  150 (earning yield)               │
+│    └── PYUSD:  50 (earning yield)               │
+│                                                 │
+│  Policies enforced on-chain per operator.       │
+│  No trust required.                             │
+└─────────────────────────────────────────────────┘
+```
+
+### Owner + Operator Model
+
+| Role | Capabilities |
+| ---- | ------------ |
+| **Owner** (human) | Full control. Add/remove operators. Change policies. Withdraw without limits. The "root" key. |
+| **Operator** (agent) | Spend within policy bounds. Per-transaction and daily limits. Cannot modify its own policies. |
+
+Each operator slot has independent `per_tx_limit` and `daily_limit`. The program checks *which operator is signing* and applies *that operator's specific policy*.
+
+## How It's Different
+
+| Approach | Safety | Automation | On-Chain |
+| -------- | ------ | ---------- | -------- |
+| Raw wallet (keypair) | None | Full | Yes |
+| Human-in-the-loop | High | None | N/A |
+| Custodial API | Trust-based | Full | No |
+| Rate limits in agent code | Bypassable | Full | No |
+| **Silkyway account** | **On-chain enforced** | **Full** | **Yes** |
+
+<Info>
+  Silkyway reframes agent financial safety as an **infrastructure problem**, not an AI alignment problem. You don't need to make the agent smarter or more careful. You make the account's policies physically unbreakable at the Solana program level.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Why Silkyway?" icon="lightbulb" href="/guides/why-silkyway">
+    Dive deeper into the value proposition and what makes this approach unique.
+  </Card>
+  <Card title="How It Works" icon="diagram-project" href="/guides/how-it-works">
+    Understand the architecture — accounts, operators, escrow, and policies.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Set up your first agent account in under 5 minutes.
+  </Card>
+  <Card title="SDK" icon="code" href="/sdk/introduction">
+    Install the SDK and start integrating.
+  </Card>
+</CardGroup>

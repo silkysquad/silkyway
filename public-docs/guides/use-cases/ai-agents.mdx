@@ -1,0 +1,107 @@
+---
+title: "AI Agents"
+description: "Give your agent safe, autonomous access to funds"
+icon: "robot"
+---
+
+## The Challenge
+
+You've built an AI agent that needs to spend money — paying for API calls, hiring other agents, purchasing data, managing subscriptions. But giving an AI unfettered access to a wallet is a non-starter.
+
+The fundamental tension: **automation requires access, but access creates risk.**
+
+## How Silkyway Solves It
+
+Silkyway eliminates this tension by moving spending controls from software to infrastructure.
+
+<Steps>
+  <Step title="Human creates account with policy">
+    The human owner sets per-transaction and daily spending limits. These become on-chain rules enforced by the Solana program.
+  </Step>
+  <Step title="Agent operates within bounds">
+    The agent sends payments freely within its policy limits. No human approval needed for routine operations. The chain enforces the ceiling.
+  </Step>
+  <Step title="Policy catches mistakes">
+    If the agent hallucinates, gets prompt-injected, or has a bug — the on-chain policy stops overspending. The maximum damage is capped at the per-transaction limit.
+  </Step>
+</Steps>
+
+## Integration Patterns
+
+<Tabs>
+  <Tab title="Autonomous Agent">
+    For agents that run independently and make spending decisions on their own:
+
+    ```bash
+    # Agent discovers its account
+    silk account sync
+
+    # Agent makes spending decisions within policy
+    silk account send <vendor> 5 --memo "API subscription"
+    # ✓ Within $25/tx limit — succeeds
+
+    silk account send <vendor> 50 --memo "bulk purchase"
+    # ✗ Exceeds $25/tx limit — rejected on-chain
+    ```
+
+    The agent doesn't need to know its limits. It tries to transact, and the chain enforces the rules.
+  </Tab>
+
+  <Tab title="Tool-Using Agent">
+    For agents (like Claude, GPT, etc.) that use the `silk` CLI as a tool:
+
+    ```
+    Agent reads SKILL.md → learns silk commands
+    Agent: silk wallet create
+    Agent: "Have your human visit silk.silkyway.ai/account/setup?agent=..."
+    Human: Creates account, sets $10/tx limit, deposits $50
+    Agent: silk account sync
+    Agent: silk account send <address> 8 --memo "payment"
+    ✓ Success (within limit)
+    ```
+
+    The skill file teaches the agent how to use its account safely.
+  </Tab>
+</Tabs>
+
+## Safety Guarantees
+
+| Threat | Protection |
+| ------ | ---------- |
+| Prompt injection | On-chain limit caps damage to per-tx maximum |
+| Hallucination | Agent can't accidentally send more than policy allows |
+| Compromised key | Operator key can only spend within bounds — owner key is separate |
+| Bug in agent code | Chain rejects invalid transactions regardless of code |
+| Malicious dependency | Even if the agent's stack is compromised, on-chain policies hold |
+
+## Example: Research Agent
+
+A research agent that pays for data and API access:
+
+```
+Account Policy:
+  Per-transaction: $10
+  Daily limit: $50
+
+Daily Operations:
+  - $5 → Data provider API
+  - $3 → Search API
+  - $2 → Analysis API
+  Total: $10/day
+
+Safety: Even if compromised, max daily loss = $50
+Yield: Remaining balance earns ~5% APY
+```
+
+The agent runs indefinitely within its budget. The human checks in weekly, adjusts limits as needed.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Set up your first agent account.
+  </Card>
+  <Card title="Self-Sustaining Agents" icon="infinity" href="/guides/use-cases/self-sustaining-agents">
+    Agents that fund themselves from yield.
+  </Card>
+</CardGroup>

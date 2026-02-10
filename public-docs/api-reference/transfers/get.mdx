@@ -1,0 +1,74 @@
+---
+title: "Get Transfer"
+description: "Get details of a specific transfer"
+---
+
+## `GET /api/transfers/:pda`
+
+Returns full details of a specific Handshake escrow transfer.
+
+### Path Parameters
+
+<ParamField path="pda" type="string" required>
+  The transfer PDA (on-chain address).
+</ParamField>
+
+### Response
+
+<ResponseField name="transfer" type="object">
+  <Expandable title="Fields">
+    <ResponseField name="pda" type="string">
+      Transfer PDA.
+    </ResponseField>
+    <ResponseField name="sender" type="string">
+      Sender's wallet address.
+    </ResponseField>
+    <ResponseField name="recipient" type="string">
+      Recipient's wallet address.
+    </ResponseField>
+    <ResponseField name="amount" type="number">
+      Transfer amount in token units.
+    </ResponseField>
+    <ResponseField name="memo" type="string">
+      Transfer memo.
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Transfer status: `Active`, `Claimed`, `Cancelled`, `Rejected`, `Declined`, `Expired`.
+    </ResponseField>
+    <ResponseField name="pool" type="string">
+      Escrow pool PDA.
+    </ResponseField>
+    <ResponseField name="claimableAfter" type="string">
+      Earliest claim time (ISO 8601), if set.
+    </ResponseField>
+    <ResponseField name="claimableUntil" type="string">
+      Claim deadline (ISO 8601), if set.
+    </ResponseField>
+    <ResponseField name="createdAt" type="string">
+      Creation timestamp.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://silk.silkyway.ai/api/transfers/4bHUkQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+```
+
+```json
+{
+  "transfer": {
+    "pda": "4bHUkQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "sender": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "recipient": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "amount": 10,
+    "memo": "payment for services",
+    "status": "Active",
+    "pool": "HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg",
+    "claimableAfter": null,
+    "claimableUntil": null,
+    "createdAt": "2025-01-15T10:30:00Z"
+  }
+}
+```

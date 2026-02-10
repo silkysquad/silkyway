@@ -1,0 +1,65 @@
+---
+title: "List Transfers"
+description: "List all transfers for a wallet"
+---
+
+## `GET /api/transfers?wallet=:address`
+
+Returns all Handshake transfers where the given wallet is the sender or recipient.
+
+### Query Parameters
+
+<ParamField query="wallet" type="string" required>
+  Solana wallet address to filter transfers by.
+</ParamField>
+
+### Response
+
+<ResponseField name="transfers" type="array">
+  Array of transfer objects.
+  <Expandable title="Transfer object">
+    <ResponseField name="pda" type="string">
+      Transfer PDA (on-chain address).
+    </ResponseField>
+    <ResponseField name="sender" type="string">
+      Sender's wallet address.
+    </ResponseField>
+    <ResponseField name="recipient" type="string">
+      Recipient's wallet address.
+    </ResponseField>
+    <ResponseField name="amount" type="number">
+      Transfer amount in token units.
+    </ResponseField>
+    <ResponseField name="memo" type="string">
+      Transfer memo (if provided).
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Transfer status: `Active`, `Claimed`, `Cancelled`, `Rejected`, `Declined`, `Expired`.
+    </ResponseField>
+    <ResponseField name="createdAt" type="string">
+      ISO 8601 creation timestamp.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl "https://silk.silkyway.ai/api/transfers?wallet=Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4"
+```
+
+```json
+{
+  "transfers": [
+    {
+      "pda": "4bHUkQ9bR3mFVDg...",
+      "sender": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+      "recipient": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+      "amount": 10,
+      "memo": "payment for services",
+      "status": "Active",
+      "createdAt": "2025-01-15T10:30:00Z"
+    }
+  ]
+}
+```

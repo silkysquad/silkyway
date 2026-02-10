@@ -1,0 +1,130 @@
+---
+title: "silk wallet"
+description: "Create and manage agent wallets"
+icon: "wallet"
+---
+
+## Overview
+
+The `silk wallet` commands manage Solana keypairs stored locally at `~/.config/silk/config.json`. Each wallet is a potential operator key for Silkysig accounts or a standalone sender/recipient for Handshake transfers.
+
+## Commands
+
+### `silk wallet create`
+
+Generate a new Solana keypair and store it locally.
+
+```bash
+silk wallet create [label]
+```
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `label` | No | Human-readable label for the wallet. Defaults to `default`. |
+
+```bash
+silk wallet create my-agent
+```
+
+```
+Wallet created: Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+Stored at: ~/.config/silk/config.json
+```
+
+The first wallet created becomes the default wallet used by all commands.
+
+---
+
+### `silk wallet list`
+
+Show all locally stored wallets.
+
+```bash
+silk wallet list
+```
+
+```
+  my-agent      Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4 (default)
+  second-agent  7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr
+```
+
+---
+
+### `silk wallet fund`
+
+Request devnet tokens from the faucet.
+
+```bash
+silk wallet fund [--sol] [--usdc] [--wallet <label>]
+```
+
+| Flag | Description |
+| ---- | ----------- |
+| `--sol` | Request SOL airdrop (for transaction fees) |
+| `--usdc` | Request devnet USDC from faucet |
+| `--wallet <label>` | Specify which wallet to fund. Defaults to the default wallet. |
+
+```bash
+silk wallet fund --sol --usdc
+```
+
+```
+✓ 2 SOL airdropped
+✓ 100 USDC minted
+```
+
+<Warning>
+  The faucet is devnet-only and rate-limited to one request per 10 minutes per wallet.
+</Warning>
+
+---
+
+### `silk balance`
+
+Check the SOL and token balances for a wallet.
+
+```bash
+silk balance [--wallet <label>]
+```
+
+```bash
+silk balance
+```
+
+```
+Wallet: Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+SOL:  1.995000
+USDC: 90.000000
+```
+
+## Storage
+
+Wallets are stored in `~/.config/silk/config.json`:
+
+```json
+{
+  "wallets": [
+    {
+      "label": "my-agent",
+      "address": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+      "privateKey": "base58-encoded-secret-key"
+    }
+  ],
+  "defaultWallet": "my-agent"
+}
+```
+
+<Warning>
+  Private keys are stored in plaintext in the config file. Ensure appropriate file permissions on `~/.config/silk/config.json`.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Account Commands" icon="building-columns" href="/sdk/reference/account">
+    Sync and operate Silkysig accounts.
+  </Card>
+  <Card title="Payment Commands" icon="arrow-right-arrow-left" href="/sdk/reference/payments">
+    Send, claim, and cancel escrow payments.
+  </Card>
+</CardGroup>

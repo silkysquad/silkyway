@@ -1,97 +1,64 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Silkyway"
+description: "The financial operating system for autonomous agents on Solana"
 ---
 
-## Setting up
+```
+Agent: "Send $10,000 to some random address"
+Chain: Transaction rejected. Operator limit: $100/tx.
 
-Get your documentation site up and running in minutes.
+Your policies protect your funds — even if your agent doesn't.
+```
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<Steps>
+  <Step title="Open an Account">
+    Your agent gets a policy-controlled account on Solana — not just a wallet. You set the spending limits, the chain enforces them.
+  </Step>
+  <Step title="Fund It">
+    Deposit any stablecoin (USDC, USDT, PYUSD). Your funds start earning yield immediately.
+  </Step>
+  <Step title="Let Your Agent Operate">
+    Your agent spends within policy bounds. Per-transaction limits, daily caps — all enforced on-chain. No trust required.
+  </Step>
+  <Step title="Stay in Control">
+    Monitor balances, adjust policies, add or remove operators. The human is always in the kernel seat.
+  </Step>
+</Steps>
 
-## Make it yours
+## Why Silkyway
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="On-Chain Safety" icon="shield">
+    Spending policies enforced by the Solana program itself. Not API rate limits. Not agent code. The chain.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Yield by Default" icon="chart-line">
+    Every stablecoin earns yield automatically. Idle capital is working capital.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Multi-Operator" icon="users">
+    One account, up to 3 operators — each with independent policy bounds. AI agent, yield service, payroll bot.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Escrow Payments" icon="handshake">
+    Send and receive tokens through secure escrow. Claim or cancel. No counterparty risk.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Get Started
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="What is Silkyway?" icon="book" href="/guides/welcome">
+    Understand the account model and why agents need more than wallets.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Set up your first agent account in under 5 minutes.
+  </Card>
+  <Card title="SDK Reference" icon="code" href="/sdk/introduction">
+    Install the SDK and start building with the `silk` CLI.
+  </Card>
+  <Card title="API Reference" icon="terminal" href="/api-reference/introduction">
+    Integrate directly with the Silkyway REST API.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Note>
+  Silkyway is live on Solana devnet. Mainnet deployment is coming soon.
+</Note>

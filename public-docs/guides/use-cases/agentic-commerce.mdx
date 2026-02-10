@@ -1,0 +1,108 @@
+---
+title: "Agentic Commerce"
+description: "Secure agent-to-agent payments through escrow"
+icon: "handshake"
+---
+
+## The Opportunity
+
+Agents are starting to transact with each other — paying for services, data, compute, and collaboration. But agent-to-agent commerce has a trust problem: how do you send money to an agent you don't trust?
+
+## Escrow-Based Payments
+
+Silkyway's Handshake system solves this with escrow. Tokens are locked in a smart contract until the recipient claims them — or the sender cancels.
+
+```bash
+# Agent A sends payment to escrow
+silk pay <Agent B address> 10 --memo "data analysis job"
+# → 10 USDC moves to escrow (Active)
+
+# Agent B claims the payment
+silk claim <transferPda>
+# → 10 USDC released to Agent B (Claimed)
+
+# Or if Agent B doesn't deliver:
+silk cancel <transferPda>
+# → 10 USDC returned to Agent A (Cancelled)
+```
+
+Neither party needs to trust the other. The escrow contract is the arbiter.
+
+## Commerce Patterns
+
+<AccordionGroup>
+  <Accordion title="Service payments" icon="briefcase">
+    Agent A hires Agent B for a task. Payment goes to escrow. On completion, Agent B claims. If undelivered, Agent A cancels.
+
+    ```bash
+    # Agent A sends payment
+    silk pay AgentB_address 25 --memo "generate report"
+
+    # Agent B does the work, then claims
+    silk claim 4bHUk...
+
+    # Agent A checks the result
+    silk payments get 4bHUk...
+    ```
+  </Accordion>
+
+  <Accordion title="Data marketplace" icon="database">
+    Data provider agents publish prices. Consumer agents pay via escrow. Claim on receipt of data.
+
+    ```bash
+    # Consumer pays for data feed
+    silk pay DataAgent 5 --memo "market data Q4"
+
+    # DataAgent delivers data and claims payment
+    silk claim 9aE5k...
+    ```
+  </Accordion>
+
+  <Accordion title="Timed payments" icon="clock">
+    Use claim windows for milestone-based or scheduled payments.
+
+    ```bash
+    # Payment claimable after delivery date
+    silk pay Contractor 100 --memo "phase 1 delivery"
+    # Transfer has claimable_after and claimable_until bounds
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Trust Through Transparency
+
+Every Silkyway account has an on-chain history. Before transacting, an agent can inspect its counterparty:
+
+- **Account age** — how long has this agent existed?
+- **Balance history** — does it maintain capital consistently?
+- **Transaction volume** — how active is it?
+- **Escrow success rate** — what percentage of transfers were claimed vs cancelled?
+
+This creates a form of on-chain reputation — verifiable, trustless, and built from observable behavior.
+
+## Combined with Policy Controls
+
+When commerce flows through a Silkysig account, the agent's spending is still policy-controlled:
+
+```bash
+# Within limits — succeeds
+silk account send AgentB 30 --memo "analysis job"
+# ✓ Within $50/tx limit
+
+# Over limits — rejected on-chain
+silk account send AgentC 100 --memo "bulk purchase"
+# ✗ Rejected: exceeds $50/tx limit
+```
+
+The human's policies protect against an agent overspending in commerce, even if the agent is enthusiastic about a deal.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Agents" icon="robot" href="/guides/use-cases/ai-agents">
+    Safe autonomous agent operations.
+  </Card>
+  <Card title="SDK Payments" icon="code" href="/sdk/reference/payments">
+    CLI reference for pay, claim, and cancel commands.
+  </Card>
+</CardGroup>

@@ -1,0 +1,84 @@
+---
+title: "Get Account by Operator"
+description: "Find accounts where a wallet is an operator"
+---
+
+## `GET /api/account/by-operator/:pubkey`
+
+Returns all Silkysig accounts where the given wallet address is registered as an operator. This is used by the SDK's `silk account sync` command to discover an agent's account.
+
+### Path Parameters
+
+<ParamField path="pubkey" type="string" required>
+  Operator's Solana wallet address (base58-encoded).
+</ParamField>
+
+### Response
+
+<ResponseField name="accounts" type="array">
+  Array of accounts where this wallet is an operator.
+  <Expandable title="Account object">
+    <ResponseField name="pda" type="string">
+      Account PDA.
+    </ResponseField>
+    <ResponseField name="owner" type="string">
+      Owner's wallet address.
+    </ResponseField>
+    <ResponseField name="mint" type="string">
+      Token mint address.
+    </ResponseField>
+    <ResponseField name="mintDecimals" type="number">
+      Token decimal places.
+    </ResponseField>
+    <ResponseField name="isPaused" type="boolean">
+      Whether the account is paused.
+    </ResponseField>
+    <ResponseField name="balance" type="number">
+      Current token balance.
+    </ResponseField>
+    <ResponseField name="operatorSlot" type="object">
+      The operator slot details for this wallet.
+      <Expandable title="Fields">
+        <ResponseField name="index" type="number">
+          Operator slot index (0-2).
+        </ResponseField>
+        <ResponseField name="perTxLimit" type="number">
+          Per-transaction limit in smallest token units.
+        </ResponseField>
+        <ResponseField name="dailyLimit" type="number">
+          Daily spending limit.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://silk.silkyway.ai/api/account/by-operator/Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
+```
+
+```json
+{
+  "accounts": [
+    {
+      "pda": "9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4",
+      "owner": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "mintDecimals": 6,
+      "isPaused": false,
+      "balance": 45.002,
+      "operatorSlot": {
+        "index": 0,
+        "perTxLimit": 10000000,
+        "dailyLimit": 0
+      }
+    }
+  ]
+}
+```
+
+<Info>
+  An operator can be on multiple accounts. The SDK uses the first account found by default.
+</Info>

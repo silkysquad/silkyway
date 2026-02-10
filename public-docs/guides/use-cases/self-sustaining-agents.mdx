@@ -1,0 +1,96 @@
+---
+title: "Self-Sustaining Agents"
+description: "Agents that fund their operations from yield"
+icon: "infinity"
+---
+
+## The Vision
+
+An agent with a sufficient endowment can operate indefinitely — funded entirely by yield on its deposited stablecoins.
+
+```
+Account balance: 1,000 USDC
+APY: 5.2%
+Daily yield: ~$0.14
+
+Daily operating costs:
+  API calls:       $0.05
+  Subscriptions:   $0.06
+  Compute:         $0.02
+  Total:           $0.13
+
+Net daily yield: +$0.01
+Status: SELF-SUSTAINING
+```
+
+The agent covers its own costs from yield. Principal untouched. It runs indefinitely without human funding.
+
+## How It Works
+
+Every stablecoin in a Silkyway account earns yield by default. This isn't opt-in — it's the default state of money in the protocol.
+
+<Steps>
+  <Step title="Deposit creates an endowment">
+    The human deposits stablecoins into the agent's account. This is the agent's "endowment" — the capital base that generates yield.
+  </Step>
+  <Step title="Yield accrues automatically">
+    The account balance grows continuously. Yield is calculated and displayed in real-time by the SDK.
+  </Step>
+  <Step title="Agent spends from yield">
+    The agent's operating costs (API calls, subscriptions, compute) are paid from account funds. As long as yield exceeds costs, the principal is never touched.
+  </Step>
+  <Step title="Surplus compounds">
+    If yield exceeds operating costs, the surplus compounds. The account grows. The agent becomes not just self-sustaining but wealth-building.
+  </Step>
+</Steps>
+
+## Economics
+
+| Endowment | APY | Annual Yield | Monthly Yield | Daily Yield |
+| --------- | --- | ------------ | ------------- | ----------- |
+| $100 | 5.2% | $5.20 | $0.43 | $0.014 |
+| $500 | 5.2% | $26.00 | $2.17 | $0.071 |
+| $1,000 | 5.2% | $52.00 | $4.33 | $0.142 |
+| $5,000 | 5.2% | $260.00 | $21.67 | $0.712 |
+| $10,000 | 5.2% | $520.00 | $43.33 | $1.42 |
+
+For many lightweight agents (monitoring bots, data fetchers, simple automation), even a $500 endowment generates enough yield to cover daily operating costs.
+
+## Agent Dividend Model
+
+Beyond self-sustainability, an agent can return value to its creator:
+
+```
+Agent earns revenue from services:    $200/month
+Operating costs:                       $50/month
+Yield on $2,000 balance:               $8.67/month
+Net monthly surplus:                   $158.67
+
+Account policy: send 50% of surplus to human creator
+Human receives: ~$79/month in passive income
+```
+
+The human built an income-generating asset. The agent pays dividends.
+
+## Combined with Safety
+
+Self-sustaining operation works hand-in-hand with policy controls:
+
+- The agent can spend yield freely within its per-tx and daily limits
+- Even if yield is high, the agent can't drain the endowment beyond policy bounds
+- The human can adjust limits as the agent proves reliable over time
+
+<Info>
+  Yield is currently simulated on devnet. Production deployment will integrate with real DeFi protocols (Kamino, Marinade, etc.) for actual yield generation.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Agents" icon="robot" href="/guides/use-cases/ai-agents">
+    Setting up policy-controlled agent operations.
+  </Card>
+  <Card title="How It Works" icon="diagram-project" href="/guides/how-it-works">
+    Architecture and policy enforcement details.
+  </Card>
+</CardGroup>

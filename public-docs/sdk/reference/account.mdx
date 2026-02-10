@@ -1,0 +1,143 @@
+---
+title: "silk account"
+description: "Manage policy-controlled Silkysig accounts"
+icon: "building-columns"
+---
+
+## Overview
+
+The `silk account` commands interact with Silkysig accounts — policy-controlled, on-chain accounts created by a human owner. Your wallet must be registered as an operator on the account.
+
+## Commands
+
+### `silk account sync`
+
+Discover and sync your Silkysig account by looking up your wallet as an operator.
+
+```bash
+silk account sync [--wallet <label>] [--account <pda>]
+```
+
+| Flag | Description |
+| ---- | ----------- |
+| `--wallet <label>` | Specify which wallet to use for discovery |
+| `--account <pda>` | Sync directly by account PDA address (skips operator lookup) |
+
+```bash
+silk account sync
+```
+
+```
+✓ Account found: 9aE5kBqR...
+  Owner: 7xKXz... (human)
+  Operator: Ax7kQ9... (you)
+  Balance: 50.0012 USDC (+$0.0012 yield)
+  Policy: max $10.00 per transaction
+```
+
+The SDK stores the account PDA and operator details in your local config. Future account commands use this cached info.
+
+<Info>
+  Run `silk account sync` after the human creates your account. The SDK discovers the account by querying the backend for accounts where your wallet is an operator.
+</Info>
+
+---
+
+### `silk account status`
+
+Display current account state — balance, yield, policy, and operator info.
+
+```bash
+silk account status [--wallet <label>]
+```
+
+```bash
+silk account status
+```
+
+```
+Account: 9aE5kBqR...
+Owner: 7xKXz...
+Balance: 50.0024 USDC (+$0.0024 yield)
+APY: 5.2%
+Policy: max $10.00/tx
+```
+
+---
+
+### `silk account send`
+
+Send tokens from the Silkysig account to a recipient. Subject to on-chain policy enforcement.
+
+```bash
+silk account send <recipient> <amount> [--memo <text>] [--wallet <label>]
+```
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `recipient` | Yes | Solana address of the recipient |
+| `amount` | Yes | Amount in tokens (e.g., `5` for 5 USDC) |
+| `--memo <text>` | No | Optional memo attached to the transfer |
+| `--wallet <label>` | No | Specify which operator wallet to use |
+
+**Successful transfer:**
+
+```bash
+silk account send 7xKXz... 5 --memo "API payment"
+```
+
+```
+✓ 5 USDC sent to 7xKXz...
+  Transaction: 5UfDuXsr...
+```
+
+**Policy rejection:**
+
+```bash
+silk account send 7xKXz... 25 --memo "too much"
+```
+
+```
+✗ REJECTED: amount $25.00 exceeds per-transaction limit of $10.00
+  Policy enforcement is on-chain — your funds are protected at the protocol level.
+```
+
+<Warning>
+  Policy enforcement happens on-chain. If the amount exceeds your operator's per-transaction limit, the Solana program itself rejects the transaction. This cannot be bypassed.
+</Warning>
+
+## Account Setup Flow
+
+Before you can use account commands, a human owner must create the account:
+
+<Steps>
+  <Step title="Agent creates wallet">
+    ```bash
+    silk wallet create my-agent
+    ```
+  </Step>
+  <Step title="Human creates account">
+    The human visits `silk.silkyway.ai/account/setup?agent=WALLET_ADDRESS`, connects their wallet, sets spending limits, and deposits funds.
+  </Step>
+  <Step title="Agent syncs">
+    ```bash
+    silk account sync
+    ```
+  </Step>
+  <Step title="Agent operates">
+    ```bash
+    silk account send <recipient> <amount>
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Payment Commands" icon="arrow-right-arrow-left" href="/sdk/reference/payments">
+    Escrow payments with pay, claim, and cancel.
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/sdk/error-handling">
+    Understanding policy rejection errors.
+  </Card>
+</CardGroup>

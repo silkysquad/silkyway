@@ -1,0 +1,68 @@
+---
+title: "Get Balance"
+description: "Check SOL and token balances for a wallet"
+---
+
+## `GET /api/wallet/:address/balance`
+
+Returns the SOL balance and all SPL token balances for a given wallet address.
+
+### Path Parameters
+
+<ParamField path="address" type="string" required>
+  Solana wallet public key (base58-encoded).
+</ParamField>
+
+### Response
+
+<ResponseField name="ok" type="boolean">
+  Whether the request succeeded.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="Fields">
+    <ResponseField name="sol" type="number">
+      SOL balance in SOL (not lamports).
+    </ResponseField>
+    <ResponseField name="tokens" type="array">
+      Array of token balances.
+      <Expandable title="Token object">
+        <ResponseField name="symbol" type="string">
+          Token symbol (e.g., "USDC").
+        </ResponseField>
+        <ResponseField name="mint" type="string">
+          Token mint address.
+        </ResponseField>
+        <ResponseField name="balance" type="string">
+          Token balance as a decimal string.
+        </ResponseField>
+        <ResponseField name="decimals" type="number">
+          Token decimal places.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://silk.silkyway.ai/api/wallet/Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4/balance
+```
+
+```json
+{
+  "ok": true,
+  "data": {
+    "sol": 1.995,
+    "tokens": [
+      {
+        "symbol": "USDC",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "balance": "90.000000",
+        "decimals": 6
+      }
+    ]
+  }
+}
+```

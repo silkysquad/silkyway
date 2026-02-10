@@ -1,0 +1,49 @@
+---
+title: "Claim Transfer"
+description: "Claim tokens from an escrow transfer"
+---
+
+## `POST /api/tx/claim-transfer`
+
+Builds an unsigned transaction that claims an escrow transfer. Tokens move from the Handshake escrow pool to the claimer's wallet.
+
+### Request Body
+
+<ParamField body="claimer" type="string" required>
+  Claimer's Solana wallet address. Must be the designated recipient of the transfer.
+</ParamField>
+
+<ParamField body="transferPda" type="string" required>
+  The transfer PDA to claim.
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction.
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/tx/claim-transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "claimer": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "transferPda": "4bHUkQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4"
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction..."
+}
+```
+
+### Errors
+
+| Code | Meaning |
+| ---- | ------- |
+| `TransferNotActive` | Transfer is not in `Active` status |
+| `UnauthorizedClaimer` | Signer is not the designated recipient |
+| `InvalidTimeWindow` | Claim attempted outside the claim window |

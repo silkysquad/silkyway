@@ -1,0 +1,73 @@
+---
+title: "Transfer from Account"
+description: "Send tokens from a Silkysig account (policy-enforced)"
+---
+
+## `POST /api/account/transfer`
+
+Builds an unsigned transaction that transfers tokens from a Silkysig account to a recipient. When signed by an operator, the transaction is subject to on-chain policy enforcement.
+
+### Request Body
+
+<ParamField body="signer" type="string" required>
+  Signer's Solana wallet address. Must be the account owner or a registered operator.
+</ParamField>
+
+<ParamField body="accountPda" type="string" required>
+  The Silkysig account PDA to send from.
+</ParamField>
+
+<ParamField body="recipient" type="string" required>
+  Recipient's Solana wallet address.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount in tokens (e.g., `5` for 5 USDC).
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction.
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/account/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "signer": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "accountPda": "9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "recipient": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "amount": 5
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction..."
+}
+```
+
+### Policy Enforcement
+
+When the signer is an **operator** (not the owner), the Silkysig program enforces:
+
+1. **Per-transaction limit** — amount must not exceed the operator's `perTxLimit`
+2. **Daily limit** — cumulative daily spending must not exceed `dailyLimit`
+3. **Account status** — account must not be paused
+
+If any check fails, the transaction is **rejected on-chain**.
+
+When the signer is the **owner**, all policy checks are bypassed. The owner has unrestricted access.
+
+### Errors
+
+| Code | Meaning |
+| ---- | ------- |
+| `POLICY_EXCEEDS_TX_LIMIT` | Amount exceeds operator's per-transaction limit |
+| `POLICY_EXCEEDS_DAILY_LIMIT` | Daily spending limit reached |
+| `POLICY_UNAUTHORIZED` | Signer is not an owner or operator |
+| `ACCOUNT_PAUSED` | Account is temporarily disabled |
+| `INSUFFICIENT_BALANCE` | Not enough tokens in the account |

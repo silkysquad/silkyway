@@ -1,0 +1,86 @@
+---
+title: "Error Handling"
+description: "Error codes, messages, and handling patterns"
+icon: "triangle-exclamation"
+---
+
+## Error Format
+
+When a command fails, the SDK returns a structured error with a code and message:
+
+```
+✗ REJECTED: amount $25.00 exceeds per-transaction limit of $10.00
+  Error code: POLICY_EXCEEDS_TX_LIMIT
+```
+
+## Silkysig Account Errors
+
+These errors come from the on-chain Silkysig program when operating through a policy-controlled account.
+
+| Error Code | Meaning | Resolution |
+| ---------- | ------- | ---------- |
+| `POLICY_EXCEEDS_TX_LIMIT` | Transaction amount exceeds the operator's per-transaction limit | Reduce the amount or ask the account owner to increase the limit |
+| `POLICY_EXCEEDS_DAILY_LIMIT` | Daily spending limit has been reached | Wait for the daily reset or ask the owner to increase the limit |
+| `POLICY_UNAUTHORIZED` | The signer is not an owner or operator on this account | Run `silk account sync` to verify your wallet is an operator |
+| `ACCOUNT_PAUSED` | The account has been temporarily disabled by the owner | Contact the account owner |
+| `INSUFFICIENT_BALANCE` | Not enough tokens in the account | Check balance with `silk account status` |
+
+## Handshake Transfer Errors
+
+These errors come from the Handshake escrow program.
+
+| Error Code | Meaning | Resolution |
+| ---------- | ------- | ---------- |
+| `TransferNotActive` | The transfer is not in `Active` status | Check transfer status with `silk payments get <pda>` |
+| `InvalidTimeWindow` | Claim attempted outside the claim window | Wait until `claimable_after` or check if `claimable_until` has passed |
+| `UnauthorizedClaimer` | The signer is not the designated recipient | Only the recipient can claim a transfer |
+| `UnauthorizedCanceller` | The signer is not the original sender | Only the sender can cancel a transfer |
+| `InsufficientFunds` | Not enough tokens to create the transfer | Check balance with `silk balance` |
+
+## Network Errors
+
+| Error | Meaning | Resolution |
+| ----- | ------- | ---------- |
+| `API_UNREACHABLE` | Cannot connect to the backend API | Check your internet connection and API URL (`silk config get-api-url`) |
+| `TRANSACTION_FAILED` | Transaction was submitted but failed on-chain | Check the error details — usually a program error |
+| `TIMEOUT` | Transaction confirmation timed out | The transaction may still succeed — check with `silk payments list` |
+
+## Handling Errors in Agents
+
+For autonomous agents, a simple pattern:
+
+```bash
+# Try the payment
+silk account send <recipient> 10 --memo "payment"
+
+# If it fails with POLICY_EXCEEDS_TX_LIMIT:
+#   → Reduce amount and retry
+# If it fails with INSUFFICIENT_BALANCE:
+#   → Log and alert, wait for funding
+# If it fails with ACCOUNT_PAUSED:
+#   → Log and wait, account is temporarily disabled
+# If it fails with a network error:
+#   → Retry after a brief delay
+```
+
+<Warning>
+  Don't retry transactions that fail with policy errors (`POLICY_EXCEEDS_TX_LIMIT`, `POLICY_EXCEEDS_DAILY_LIMIT`). These are intentional limits set by the account owner. Retrying won't change the outcome.
+</Warning>
+
+## Faucet Errors
+
+| Error | Meaning | Resolution |
+| ----- | ------- | ---------- |
+| `RATE_LIMITED` | Too many faucet requests | Wait 10 minutes before requesting again |
+| `DEVNET_ONLY` | Faucet only works on devnet | Switch to devnet or fund wallet manually on mainnet |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Account Reference" icon="building-columns" href="/sdk/reference/account">
+    Account management commands.
+  </Card>
+  <Card title="Payments Reference" icon="arrow-right-arrow-left" href="/sdk/reference/payments">
+    Payment commands and transfer management.
+  </Card>
+</CardGroup>

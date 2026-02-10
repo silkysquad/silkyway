@@ -1,0 +1,60 @@
+---
+title: "Create Account"
+description: "Create a policy-controlled Silkysig account"
+---
+
+## `POST /api/account/create`
+
+Builds an unsigned transaction that creates a new Silkysig account. The signer becomes the account owner.
+
+### Request Body
+
+<ParamField body="owner" type="string" required>
+  Owner's Solana wallet address (the human who will control the account).
+</ParamField>
+
+<ParamField body="mint" type="string" required>
+  Token mint address for the account (e.g., USDC mint).
+</ParamField>
+
+<ParamField body="operator" type="string">
+  Solana wallet address to add as the first operator (typically the agent). If omitted, the account is created with no operators.
+</ParamField>
+
+<ParamField body="perTxLimit" type="number">
+  Per-transaction spending limit for the first operator, in smallest token units (e.g., `10000000` for 10 USDC with 6 decimals). Required if `operator` is provided.
+</ParamField>
+
+### Response
+
+<ResponseField name="transaction" type="string">
+  Base64-encoded unsigned Solana transaction.
+</ResponseField>
+
+<ResponseField name="accountPda" type="string">
+  The on-chain address of the created account.
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://silk.silkyway.ai/api/account/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "owner": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "operator": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "perTxLimit": 10000000
+  }'
+```
+
+```json
+{
+  "transaction": "base64-encoded-unsigned-transaction...",
+  "accountPda": "9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4"
+}
+```
+
+<Info>
+  The account PDA is derived from `["account", owner_pubkey]`. Each owner can have one account.
+</Info>

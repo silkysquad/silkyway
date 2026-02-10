@@ -1,0 +1,91 @@
+---
+title: "Get Account"
+description: "Get full details of a Silkysig account"
+---
+
+## `GET /api/account/:pda`
+
+Returns the full state of a Silkysig account including balance, operators, and policies.
+
+### Path Parameters
+
+<ParamField path="pda" type="string" required>
+  The Silkysig account PDA.
+</ParamField>
+
+### Response
+
+<ResponseField name="pda" type="string">
+  Account PDA.
+</ResponseField>
+
+<ResponseField name="owner" type="string">
+  Owner's wallet address.
+</ResponseField>
+
+<ResponseField name="mint" type="string">
+  Token mint address.
+</ResponseField>
+
+<ResponseField name="mintDecimals" type="number">
+  Token decimal places.
+</ResponseField>
+
+<ResponseField name="isPaused" type="boolean">
+  Whether the account is currently paused.
+</ResponseField>
+
+<ResponseField name="balance" type="number">
+  Current token balance.
+</ResponseField>
+
+<ResponseField name="operators" type="array">
+  Array of operator slots.
+  <Expandable title="Operator object">
+    <ResponseField name="index" type="number">
+      Operator slot index (0-2).
+    </ResponseField>
+    <ResponseField name="pubkey" type="string">
+      Operator's wallet address.
+    </ResponseField>
+    <ResponseField name="perTxLimit" type="number">
+      Per-transaction limit in smallest token units.
+    </ResponseField>
+    <ResponseField name="dailyLimit" type="number">
+      Daily spending limit (0 = no daily limit).
+    </ResponseField>
+    <ResponseField name="dailySpent" type="number">
+      Amount spent today.
+    </ResponseField>
+    <ResponseField name="lastReset" type="string">
+      Timestamp of last daily reset.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://silk.silkyway.ai/api/account/9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4
+```
+
+```json
+{
+  "pda": "9aE5kBqR3mFVDg2Thh3AG6sFRPqNrDJ4",
+  "owner": "7xKXzM8q4bR3nFVDg2Thh3AG6sFRPqNr",
+  "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "mintDecimals": 6,
+  "isPaused": false,
+  "balance": 45.002,
+  "operators": [
+    {
+      "index": 0,
+      "pubkey": "Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4",
+      "perTxLimit": 10000000,
+      "dailyLimit": 0,
+      "dailySpent": 5000000,
+      "lastReset": "2025-01-15T00:00:00Z"
+    }
+  ]
+}
+```
