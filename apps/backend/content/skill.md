@@ -1,6 +1,6 @@
 ---
 name: silk
-description: Agent payments on Solana. Policy-controlled accounts with spending limits, plus cancellable escrow transfers. USDC on-chain — non-custodial.
+description: Agent payments on Solana. Send and receive USDC with cancellable escrow transfers. Optional on-chain accounts with policy-enforced spending limits for human-delegated automation.
 metadata:
    author: silkysquad
    homepage: https://silkyway.ai
@@ -9,180 +9,190 @@ metadata:
 
 # Silkyway
 
-Agent payments on Solana. Two payment modes:
+Agent payments on Solana. Send and receive USDC — non-custodial, on-chain.
 
-1. **Accounts (recommended)** — Your human creates an on-chain account, adds you as an operator with a per-transaction spending limit, and funds it with USDC. You send payments directly from the account. The on-chain program enforces your spending limit — if you try to exceed it, the transaction is rejected on-chain. No escrow, no claiming.
-
-2. **Escrow transfers** — Send USDC into on-chain escrow. The recipient claims it, or you cancel for a full refund. Good for one-off payments between parties who don't fully trust each other.
-
-## How Accounts Work
-
-A Silkyway account is an on-chain wallet controlled by a **human owner** who delegates spending authority to **operator agents**. Each operator has an independent per-transaction spending limit enforced by the Solana program.
-
-```
-Human (owner) creates account → funds it with USDC → adds agent as operator
-Agent (operator) sends payments → on-chain program enforces spending limit
-```
-
-**Key concepts:**
-- **Owner** — The human who created the account. Has full control: can transfer any amount, pause the account, add/remove operators. The owner's wallet address is a regular Solana wallet (e.g., Phantom).
-- **Operator** — An agent authorized to send tokens from the account, subject to a per-transaction limit. Your CLI wallet (`silk wallet create`) is your operator key.
-- **Per-transaction limit** — Maximum USDC the operator can send in a single transaction. Set by the owner. Enforced on-chain — the program rejects transactions that exceed it. A limit of 0 means unlimited.
-- **Account PDA** — The on-chain address of the account (a Program Derived Address). Derived from the owner's public key. One account per owner.
-- **Pause** — The owner can pause the account, which blocks all operator transfers. The owner can still withdraw. Operators cannot unpause.
-
-### Set up your account
-
-Your human needs to create the account first. You cannot create it yourself.
-
-1. Initialize your CLI (if you haven't already):
-   ```bash
-   silk init
-   ```
-   This creates your wallet and agent ID. It's idempotent — safe to run multiple times.
-
-2. Share the setup URL with your human — they'll connect their wallet, set your spending limit, and fund the account:
-   ```
-   https://app.silkyway.ai/account/setup?agent=YOUR_WALLET_ADDRESS
-   ```
-   Replace `YOUR_WALLET_ADDRESS` with the address from `silk wallet list`.
-
-   **Important:** Your human must select the same network (mainnet/devnet) on the setup page as your CLI cluster. The setup page has a cluster toggle in the header. If you're on devnet (`silk config get-cluster`), tell your human to switch to devnet before creating the account.
-
-3. After your human creates the account, sync it:
-   ```bash
-   silk account sync
-   ```
-   This discovers your account and saves the configuration locally.
-
-4. Check your account status:
-   ```bash
-   silk account status
-   ```
-   Shows your balance, spending limit, and whether the account is paused.
-
-5. Send payments:
-   ```bash
-   silk account send <recipient> <amount>
-   ```
-   If the amount exceeds your per-transaction limit, the transaction will be **rejected on-chain** with an `ExceedsPerTxLimit` error.
-
-### How escrow transfers work
-
-Escrow transfers are the original Silkyway payment mode — good for one-off payments between parties.
-
-```
-Sender Wallet → [create_transfer] → Escrow
-Escrow         → [claim_transfer]  → Recipient Wallet
-Escrow         → [cancel_transfer] → Sender Wallet (refund)
-```
-
-## Cluster Configuration
-
-Silkyway supports both **mainnet** (real USDC) and **devnet** (test USDC). Default is `mainnet-beta`.
+## Install
 
 ```bash
-# Check current cluster
-silk config get-cluster
-
-# Switch to devnet for testing
-silk config set-cluster devnet
-
-# Switch back to mainnet
-silk config set-cluster mainnet-beta
+npm install -g https://silkyway.ai/sdk/silkyway-sdk-0.1.0.tgz
 ```
 
-The cluster determines which Solana network and API backend are used:
+## Setup
+
+```bash
+# 1. Initialize (creates wallet and agent ID)
+silk init
+
+# 2. Check your wallet address
+silk wallet list
+```
+
+Your wallet and agent ID are saved at `~/.config/silk/config.json`. Your private key never leaves your machine. `silk init` is idempotent — safe to run multiple times.
+
+### Cluster configuration
+
+Default cluster is `mainnet-beta` (real USDC). Switch to `devnet` for testing with free tokens.
+
+```bash
+silk config set-cluster devnet    # test tokens
+silk config set-cluster mainnet-beta  # real USDC
+silk config get-cluster           # show current
+```
 
 | Cluster | API Base URL | Network |
 |---------|-------------|---------|
 | `mainnet-beta` | `https://api.silkyway.ai` | Mainnet (real USDC) |
 | `devnet` | `https://devnet-api.silkyway.ai` | Devnet (test USDC) |
 
-Use `devnet` for testing and development; use `mainnet-beta` for real payments.
+### Fund your wallet (devnet)
 
-## Set up your wallet first
-
-You need a funded wallet before you can use either payment mode.
-
-### 1. Install the CLI
-
-```bash
-npm install -g https://silkyway.ai/sdk/silkyway-sdk-0.1.0.tgz
-```
-
-### 2. Initialize
-
-```bash
-silk init
-```
-
-This creates a default wallet named "main" and generates a unique agent ID. It's idempotent — safe to run multiple times. Your wallet and agent ID are saved at `~/.config/silk/config.json`. Your private key never leaves your machine.
-
-Run `silk wallet list` to see your wallet address — you'll need it to receive payments from other agents.
-
-Alternatively, you can create wallets manually with `silk wallet create [label]`.
-
-### 3. Fund your wallet
-
-On devnet, use our faucet — it gives you everything you need (0.1 SOL for transaction fees + 100 USDC for payments):
+On devnet, use the faucet — it gives you 0.1 SOL (for transaction fees) + 100 USDC:
 
 ```bash
 silk config set-cluster devnet
 silk wallet fund
-```
-
-On other networks, you need to send SOL and USDC to your wallet address manually. SOL is required for Solana transaction fees. USDC is the token used for payments.
-
-Check your balances anytime:
-
-```bash
 silk balance
 ```
 
-You're now ready to send payments. Skip to [Send your first payment](#send-your-first-payment) or read the full CLI reference below.
+On mainnet, send SOL and USDC to your wallet address manually. SOL is required for Solana transaction fees.
 
-## Send your first payment
+## Sending Payments
 
 ```bash
-silk pay 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx 10 --memo "First payment"
+silk pay <recipient> <amount> [--memo <text>]
 ```
 
-This locks 10 USDC into on-chain escrow. The recipient claims it with `silk claim <transfer-pda>`. You can cancel anytime before they claim with `silk cancel <transfer-pda>`.
+This locks USDC into on-chain escrow. The recipient claims it with `silk claim`, or you cancel for a full refund with `silk cancel`.
+
+```bash
+# Send 10 USDC
+silk pay 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx 10 --memo "Payment for code review"
+
+# Check your balance
+silk balance
+
+# View your transfers
+silk payments list
+silk payments get <transfer-pda>
+```
+
+### Claiming a payment
+
+If someone sent you a payment:
+
+```bash
+silk payments list
+silk claim <transfer-pda>
+```
+
+### Cancelling a payment
+
+Cancel a payment you sent (before the recipient claims it):
+
+```bash
+silk cancel <transfer-pda>
+```
 
 ## Address Book
 
 Save contacts so you can send payments by name instead of address.
 
 ```bash
-# Add a contact
 silk contacts add alice 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx
-
-# List all contacts
 silk contacts list
-
-# Look up a contact
 silk contacts get alice
-
-# Remove a contact
 silk contacts remove alice
 ```
 
-Once a contact is saved, use their name anywhere you'd use an address:
+Once saved, use names anywhere you'd use an address:
 
 ```bash
 silk pay alice 10 --memo "Thanks for the review"
 silk account send alice 5
 ```
 
-Contact names are case-insensitive and stored lowercase. Contacts are saved at `~/.config/silk/contacts.json`.
+Contact names are case-insensitive and stored lowercase. Saved at `~/.config/silk/contacts.json`.
+
+## Multi-Wallet Support
+
+```bash
+silk wallet create second-wallet
+silk wallet fund --wallet second-wallet
+silk wallet list
+```
+
+Use `--wallet <label>` on any command to select a non-default wallet:
+
+```bash
+silk pay <address> 10 --wallet second-wallet
+silk balance --wallet second-wallet
+```
+
+## Support Chat
+
+```bash
+silk chat "How do I send a payment?"
+```
+
+A persistent `agentId` (UUID) is auto-generated on first use for session continuity.
+
+## On-Chain Accounts (Optional)
+
+A Silkyway account is an on-chain wallet — like a bank account — that a human owner creates and funds with USDC. The owner can add agents as **operators** with per-transaction spending limits enforced on-chain. This is useful for automations, recurring payments, or any scenario where a human wants to delegate spending authority to an agent with guardrails.
+
+You don't need an account to use Silkyway. Escrow payments (`silk pay`) work with just a wallet. Accounts are an optional upgrade when your human wants to give you direct spending access with on-chain controls.
+
+**Key concepts:**
+- **Owner** — The human who creates and funds the account. Full control: can transfer any amount, pause the account, add/remove operators.
+- **Operator** — You (the agent). Authorized to send tokens from the account, subject to a per-transaction limit set by the owner.
+- **Per-transaction limit** — Maximum USDC you can send in one transaction. Enforced on-chain — the Solana program rejects transactions that exceed it. A limit of 0 means unlimited.
+- **Pause** — The owner can pause the account, blocking all operator transfers until unpaused. You cannot unpause it.
+
+### Setting up an account
+
+Your human creates the account — you cannot create it yourself.
+
+1. Share the setup URL with your human (replace with your address from `silk wallet list`):
+   ```
+   https://app.silkyway.ai/account/setup?agent=YOUR_WALLET_ADDRESS
+   ```
+   They'll connect their wallet, set your spending limit, and fund the account.
+
+   **Important:** Your human must select the same network (mainnet/devnet) on the setup page as your CLI cluster. If you're on devnet, tell them to switch to devnet before creating the account.
+
+2. After your human creates the account, sync it:
+   ```bash
+   silk account sync
+   ```
+
+3. Check your status and send payments:
+   ```bash
+   silk account status
+   silk account send <recipient> <amount>
+   ```
+
+If the amount exceeds your per-transaction limit, the transaction is **rejected on-chain** with `ExceedsPerTxLimit`. If the account is paused, you get `AccountPaused`.
+
+If `silk account sync` returns "No account found", your human hasn't created the account yet — share the setup URL with them.
+
+### Accounts vs escrow payments
+
+| | Accounts | Escrow (`silk pay`) |
+|---|---|---|
+| **Setup required** | Human creates account + adds you as operator | None — just a funded wallet |
+| **Spending limits** | Per-transaction limit enforced on-chain | No limits |
+| **Recipient claims?** | No — direct transfer, tokens arrive immediately | Yes — recipient must `silk claim` |
+| **Cancellable?** | No — transfer is instant | Yes — sender can cancel before claim |
+| **Best for** | Ongoing payments with human oversight | One-off payments between parties |
+
+If your human has set up an account for you, prefer `silk account send` — it's simpler (no claim step) and your human controls the spending limits.
 
 ## CLI Reference
 
 | Command | Description |
 |---------|-------------|
-| `silk init` | Initialize CLI (create default wallet and agent ID if needed) |
-| `silk wallet create [label]` | Create a new wallet (first one is named "main") |
+| `silk init` | Initialize CLI (create wallet, agent ID, and contacts file) |
+| `silk wallet create [label]` | Create a new wallet |
 | `silk wallet list` | List all wallets with addresses |
 | `silk wallet fund [--sol] [--usdc] [--wallet <label>]` | Fund wallet from devnet faucet |
 | `silk balance [--wallet <label>]` | Show SOL and USDC balances |
@@ -192,10 +202,10 @@ Contact names are case-insensitive and stored lowercase. Contacts are saved at `
 | `silk payments list [--wallet <label>]` | List transfers |
 | `silk payments get <transfer-pda>` | Get transfer details |
 | `silk contacts add <name> <address>` | Save a contact to the address book |
-| `silk contacts remove <name>` | Remove a contact from the address book |
+| `silk contacts remove <name>` | Remove a contact |
 | `silk contacts list` | List all saved contacts |
 | `silk contacts get <name>` | Look up a contact's address |
-| `silk account sync [--wallet <label>] [--account <pda>]` | Discover and sync your account (must be set up by human first) |
+| `silk account sync [--wallet <label>] [--account <pda>]` | Discover and sync your on-chain account |
 | `silk account status [--wallet <label>]` | Show account balance, spending limit, and pause state |
 | `silk account send <recipient> <amount> [--memo <text>] [--wallet <label>]` | Send from account (policy-enforced on-chain) |
 | `silk chat <message>` | Ask Silkyway support agent a question |
@@ -203,254 +213,25 @@ Contact names are case-insensitive and stored lowercase. Contacts are saved at `
 | `silk config get-cluster` | Show current cluster and API URL |
 | `silk config reset-cluster` | Reset cluster to default (`mainnet-beta`) |
 
-Use `--wallet <label>` on any command to select a non-default wallet.
+Use `--wallet <label>` on any command to select a non-default wallet. Recipients accept contact names or Solana addresses.
 
-## End-to-End Examples
-
-### Account: set up and send (recommended)
-
-```bash
-# 1. Initialize and fund your wallet (on devnet for testing)
-silk init
-silk config set-cluster devnet
-silk wallet fund
-
-# 2. Share setup URL with your human (replace with your address)
-silk wallet list
-# → main: 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx
-# Tell your human: https://app.silkyway.ai/account/setup?agent=7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx
-# Remind them to switch to devnet in the header if you're on devnet
-
-# 3. After human creates the account, sync it
-silk account sync
-# → Synced account 9aE5kBqR... (owner: BrKz4GQN..., balance: $10.00 USDC, limit: $5.00/tx)
-
-# 4. Check status anytime
-silk account status
-# → balance: $10.00, per-tx limit: $5.00, paused: false
-
-# 5. Send a payment within your limit
-silk account send Dg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx7xKXz9BpR3mFV 3
-# → Sent $3.00 USDC (txid: 5UfDuXsr...)
-
-# 6. Try to exceed your limit — rejected on-chain
-silk account send Dg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx7xKXz9BpR3mFV 10
-# → REJECTED: amount $10.00 exceeds per-transaction limit of $5.00
-```
-
-### Escrow: pay, then recipient claims
-
-```bash
-# Sender: initialize and fund a wallet
-silk init
-silk wallet fund
-
-# Sender: pay 25 USDC to a recipient
-silk pay 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx 25 --memo "Payment for code review"
-# → Transfer PDA: 9aE5kBqR...  (save this)
-
-# Recipient: list incoming payments
-silk payments list
-# → Shows transfer with status ACTIVE
-
-# Recipient: claim the payment
-silk claim 9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4
-# → Payment claimed, USDC deposited to wallet
-```
-
-### Pay, then sender cancels
-
-```bash
-# Sender: pay 10 USDC
-silk pay 7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx 10 --memo "Tentative payment"
-# → Transfer PDA: 4bHUkR8Y...
-
-# Sender: changed their mind — cancel before recipient claims
-silk cancel 4bHUkR8Y7vNx3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7v
-# → Payment cancelled, USDC refunded to sender
-
-# Verify it was cancelled
-silk payments get 4bHUkR8Y7vNx3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7v
-# → status: CANCELLED
-```
-
-### Multi-wallet testing
-
-```bash
-# Create two wallets to simulate both sides
-silk wallet create sender
-silk wallet create receiver
-silk wallet fund --wallet sender
-silk wallet fund --wallet receiver
-
-# Send from sender → receiver
-silk pay $(silk wallet list | grep receiver) 5 --memo "Test" --wallet sender
-
-# Claim as receiver
-silk payments list --wallet receiver
-silk claim <transfer-pda> --wallet receiver
-```
-
-## How accounts differ from escrow
-
-| | Accounts | Escrow |
-|---|---|---|
-| **Who creates it** | Human owner | Agent (sender) |
-| **Spending limits** | Yes — per-transaction limit enforced on-chain | No |
-| **Recipient claims?** | No — direct transfer, recipient gets tokens immediately | Yes — recipient must `silk claim` |
-| **Cancellable?** | No — transfer is instant | Yes — sender can cancel before claim |
-| **Best for** | Ongoing agent payments with human oversight | One-off payments between untrusted parties |
-
-If your human has set up an account for you, prefer `silk account send` over `silk pay`. It's simpler (no claim step) and your human controls the spending limits.
-
-## How transactions work
+## How Transactions Work
 
 Silkyway is non-custodial — your private keys never leave your machine.
 
-Every payment follows a build→sign→submit flow:
+Every payment follows a build-sign-submit flow:
 
-1. **Build** — Call a `POST /api/tx/*` endpoint with payment details. The backend builds an unsigned Solana transaction and returns it as base64.
-2. **Sign** — The SDK signs the transaction locally using your private key (stored at `~/.config/silk/config.json`).
-3. **Submit** — Send the signed transaction to `POST /api/tx/submit`. The backend forwards it to Solana and confirms it on-chain.
+1. **Build** — The SDK calls an API endpoint with payment details. The backend builds an unsigned Solana transaction and returns it as base64.
+2. **Sign** — The SDK signs the transaction locally using your private key.
+3. **Submit** — The SDK sends the signed transaction to the backend, which forwards it to Solana.
 
-The backend handles Solana complexity (PDA derivation, instruction building, blockhash management) so agents don't have to. But it never sees your private key — it only builds the unsigned transaction structure. All authorization is enforced on-chain by the Solana program.
-
-When using the CLI (`silk pay`, `silk claim`, etc.), this flow happens automatically. When using the API directly, you handle each step yourself.
+The backend handles Solana complexity (PDA derivation, instruction building, blockhash management). It never sees your private key — all authorization is enforced on-chain by the Solana program.
 
 ## API Endpoints
 
 Base URL: `https://api.silkyway.ai` (mainnet) or `https://devnet-api.silkyway.ai` (devnet)
 
 All requests use `Content-Type: application/json`.
-
-### Account Endpoints
-
-#### GET /api/account/by-operator/:pubkey
-
-Find accounts where your wallet is an operator. Used by `silk account sync`.
-
-**Example:** `GET /api/account/by-operator/7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx`
-
-**Response:**
-```json
-{
-  "ok": true,
-  "data": {
-    "accounts": [
-      {
-        "pda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-        "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-        "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-        "mintDecimals": 6,
-        "isPaused": false,
-        "balance": 10000000,
-        "operatorSlot": {
-          "index": 0,
-          "perTxLimit": 5000000,
-          "dailyLimit": 0
-        }
-      }
-    ]
-  }
-}
-```
-
-Returns an empty array if no accounts found — this means your human hasn't set up your account yet.
-
-#### GET /api/account/:pda
-
-Get full account details. Used by `silk account status`.
-
-**Example:** `GET /api/account/9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4`
-
-**Response:**
-```json
-{
-  "ok": true,
-  "data": {
-    "pda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-    "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-    "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-    "mintDecimals": 6,
-    "isPaused": false,
-    "balance": 10000000,
-    "operators": [
-      {
-        "pubkey": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
-        "perTxLimit": 5000000,
-        "dailyLimit": 0
-      }
-    ]
-  }
-}
-```
-
-Note: `balance` and `perTxLimit` are in raw token units. USDC has 6 decimals, so `5000000` = $5.00.
-
-#### POST /api/account/transfer
-
-Build an unsigned transfer transaction from a Silkyway account. Used by `silk account send`.
-
-**Request:**
-```json
-{
-  "signer": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
-  "accountPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-  "recipient": "Dg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx7xKXz9BpR3mFV",
-  "amount": 3000000
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `signer` | string | yes | Your wallet address (operator) |
-| `accountPda` | string | yes | The account's on-chain PDA |
-| `recipient` | string | yes | Recipient's Solana public key |
-| `amount` | number | yes | Amount in raw token units (e.g. `3000000` = 3.00 USDC) |
-
-**Response:**
-```json
-{
-  "ok": true,
-  "data": {
-    "transaction": "AQAAAAAAAAAAAAAA...base64...AAAAAAA="
-  }
-}
-```
-
-Sign and submit the returned transaction via `POST /api/tx/submit`.
-
-**Common errors:**
-- `ExceedsPerTxLimit` — Amount exceeds your per-transaction spending limit
-- `AccountPaused` — Account is paused by the owner; operator transfers blocked
-- `Unauthorized` — Signer is not the owner or an operator on this account
-
-#### POST /api/account/create
-
-Build an unsigned create-account transaction. Used by the setup page (human-facing, not typically called by agents).
-
-**Request:**
-```json
-{
-  "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-  "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-  "operator": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
-  "perTxLimit": 5000000
-}
-```
-
-#### POST /api/account/deposit
-
-Build an unsigned deposit transaction. Used by the setup page to fund the account.
-
-**Request:**
-```json
-{
-  "depositor": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-  "accountPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-  "amount": 10000000
-}
-```
 
 ### Escrow Endpoints
 
@@ -593,7 +374,7 @@ Get details for a single transfer.
 
 **Example:** `GET /api/transfers/9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4`
 
-**Response (active transfer):**
+**Response:**
 ```json
 {
   "ok": true,
@@ -614,62 +395,6 @@ Get details for a single transfer.
       "claimableUntil": null,
       "createdAt": "2025-02-07T12:00:00.000Z",
       "updatedAt": "2025-02-07T12:00:00.000Z",
-      "token": { "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "symbol": "USDC", "decimals": 6 },
-      "pool": { "poolPda": "3Fk8vMYJbCbEB2jzRCdRG9rFJhN2TCmPia9BjEKpTk5R", "feeBps": 50 }
-    }
-  }
-}
-```
-
-**Response (claimed transfer):**
-```json
-{
-  "ok": true,
-  "data": {
-    "transfer": {
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "transferPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-      "sender": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-      "recipient": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
-      "amount": "10000000",
-      "amountRaw": "10000000",
-      "status": "CLAIMED",
-      "memo": "Payment for code review",
-      "createTxid": "5UfDuXsrhFnxGZmyJxNR8z7Ee5JDFrgWHKPdTEJvoTpB",
-      "claimTxid": "3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx9BpR3mFVDg",
-      "cancelTxid": null,
-      "claimableAfter": null,
-      "claimableUntil": null,
-      "createdAt": "2025-02-07T12:00:00.000Z",
-      "updatedAt": "2025-02-07T12:05:00.000Z",
-      "token": { "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "symbol": "USDC", "decimals": 6 },
-      "pool": { "poolPda": "3Fk8vMYJbCbEB2jzRCdRG9rFJhN2TCmPia9BjEKpTk5R", "feeBps": 50 }
-    }
-  }
-}
-```
-
-**Response (cancelled transfer):**
-```json
-{
-  "ok": true,
-  "data": {
-    "transfer": {
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "transferPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
-      "sender": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-      "recipient": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
-      "amount": "10000000",
-      "amountRaw": "10000000",
-      "status": "CANCELLED",
-      "memo": "Payment for code review",
-      "createTxid": "5UfDuXsrhFnxGZmyJxNR8z7Ee5JDFrgWHKPdTEJvoTpB",
-      "claimTxid": null,
-      "cancelTxid": "8Y7vNx3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR9BpR3mFVDg",
-      "claimableAfter": null,
-      "claimableUntil": null,
-      "createdAt": "2025-02-07T12:00:00.000Z",
-      "updatedAt": "2025-02-07T12:03:00.000Z",
       "token": { "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "symbol": "USDC", "decimals": 6 },
       "pool": { "poolPda": "3Fk8vMYJbCbEB2jzRCdRG9rFJhN2TCmPia9BjEKpTk5R", "feeBps": 50 }
     }
@@ -701,17 +426,6 @@ List all transfers where the wallet is sender or recipient.
         "createdAt": "2025-02-07T12:00:00.000Z",
         "token": { "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "symbol": "USDC", "decimals": 6 },
         "pool": { "poolPda": "3Fk8vMYJbCbEB2jzRCdRG9rFJhN2TCmPia9BjEKpTk5R", "feeBps": 50 }
-      },
-      {
-        "transferPda": "4bHUkR8Y7vNx3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7v",
-        "sender": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-        "recipient": "Dg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx7xKXz9BpR3mFV",
-        "amount": "5000000",
-        "status": "CLAIMED",
-        "memo": "Bug bounty payout",
-        "createdAt": "2025-02-06T09:30:00.000Z",
-        "token": { "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "symbol": "USDC", "decimals": 6 },
-        "pool": { "poolPda": "3Fk8vMYJbCbEB2jzRCdRG9rFJhN2TCmPia9BjEKpTk5R", "feeBps": 50 }
       }
     ]
   }
@@ -722,15 +436,7 @@ List all transfers where the wallet is sender or recipient.
 
 Airdrop devnet SOL or USDC. Devnet only.
 
-**Request (SOL):**
-```json
-{
-  "wallet": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
-  "token": "sol"
-}
-```
-
-**Request (USDC):**
+**Request:**
 ```json
 {
   "wallet": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
@@ -748,6 +454,135 @@ Airdrop devnet SOL or USDC. Devnet only.
     "amount": 0.1,
     "txid": "5UfDuXsrhFnxGZmyJxNR8z7Ee5JDFrgWHKPdTEJvoTpB3Qw8mKz4GQN1sxZWoGL"
   }
+}
+```
+
+### Account Endpoints
+
+#### GET /api/account/by-operator/:pubkey
+
+Find accounts where your wallet is an operator. Used by `silk account sync`.
+
+**Example:** `GET /api/account/by-operator/7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx`
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "accounts": [
+      {
+        "pda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
+        "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
+        "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "mintDecimals": 6,
+        "isPaused": false,
+        "balance": 10000000,
+        "operatorSlot": {
+          "index": 0,
+          "perTxLimit": 5000000,
+          "dailyLimit": 0
+        }
+      }
+    ]
+  }
+}
+```
+
+Returns an empty array if no accounts found — this means your human hasn't set up your account yet.
+
+#### GET /api/account/:pda
+
+Get full account details. Used by `silk account status`.
+
+**Example:** `GET /api/account/9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4`
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "pda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
+    "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
+    "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "mintDecimals": 6,
+    "isPaused": false,
+    "balance": 10000000,
+    "operators": [
+      {
+        "pubkey": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
+        "perTxLimit": 5000000,
+        "dailyLimit": 0
+      }
+    ]
+  }
+}
+```
+
+Note: `balance` and `perTxLimit` are in raw token units. USDC has 6 decimals, so `5000000` = $5.00.
+
+#### POST /api/account/transfer
+
+Build an unsigned transfer transaction from a Silkyway account. Used by `silk account send`.
+
+**Request:**
+```json
+{
+  "signer": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
+  "accountPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
+  "recipient": "Dg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx7xKXz9BpR3mFV",
+  "amount": 3000000
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `signer` | string | yes | Your wallet address (operator) |
+| `accountPda` | string | yes | The account's on-chain PDA |
+| `recipient` | string | yes | Recipient's Solana public key |
+| `amount` | number | yes | Amount in raw token units (e.g. `3000000` = 3.00 USDC) |
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "transaction": "AQAAAAAAAAAAAAAA...base64...AAAAAAA="
+  }
+}
+```
+
+Sign and submit the returned transaction via `POST /api/tx/submit`.
+
+**Common errors:**
+- `ExceedsPerTxLimit` — Amount exceeds your per-transaction spending limit
+- `AccountPaused` — Account is paused by the owner; operator transfers blocked
+- `Unauthorized` — Signer is not the owner or an operator on this account
+
+#### POST /api/account/create
+
+Build an unsigned create-account transaction. Used by the setup page (human-facing, not typically called by agents).
+
+**Request:**
+```json
+{
+  "owner": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
+  "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+  "operator": "7xKXz9BpR3mFVDg2Thh3AG6sFRPqNrDJ4bHUkR8Y7vNx",
+  "perTxLimit": 5000000
+}
+```
+
+#### POST /api/account/deposit
+
+Build an unsigned deposit transaction. Used by the setup page to fund the account.
+
+**Request:**
+```json
+{
+  "depositor": "BrKz4GQN1sxZWoGLbNTojp4G3JCFLRkSYk3mSRWhKsXp",
+  "accountPda": "9aE5kBqRvF3mNcXz8BpR3mFVDg2Thh3AG6sFRPqNrDJ4",
+  "amount": 10000000
 }
 ```
 
@@ -779,14 +614,6 @@ Send a message to the Silkyway support agent. Returns an AI-generated response.
 }
 ```
 
-**Errors:**
-- `INVALID_AGENT_ID` (400) — agentId is not a valid UUID
-- `INVALID_MESSAGE` (400) — message is empty or missing
-- `OPENCLAW_UNAVAILABLE` (503) — support agent backend is temporarily unavailable
-- `INTERNAL_ERROR` (500) — unexpected server error
-
-**Note:** Each SDK installation has an auto-generated UUID (`agentId`) stored in `~/.config/silk/config.json`. It is sent automatically with chat requests for session continuity. It is not used for authentication — just session tracking.
-
 ## Transfer Statuses
 
 | Status | Description |
@@ -797,6 +624,18 @@ Send a message to the Silkyway support agent. Returns an AI-generated response.
 | `EXPIRED` | Transfer expired past its `claimableUntil` window |
 
 ## Error Codes
+
+### Escrow Program Errors (Handshake)
+
+| Code | Name | Description |
+|------|------|-------------|
+| 6000 | `TransferAlreadyClaimed` | Transfer has already been claimed |
+| 6001 | `TransferAlreadyCancelled` | Transfer has already been cancelled |
+| 6002 | `TransferExpired` | Transfer has expired |
+| 6003 | `ClaimTooEarly` | Cannot claim before `claimableAfter` timestamp |
+| 6004 | `Unauthorized` | Signer is not authorized for this action |
+| 6005 | `PoolPaused` | The token's escrow pool is temporarily paused — try again later |
+| 6006 | `InsufficientFunds` | Sender has insufficient token balance |
 
 ### Account Program Errors (Silkysig)
 
@@ -811,18 +650,6 @@ Send a message to the Silkyway support agent. Returns an AI-generated response.
 | 6006 | `OperatorAlreadyExists` | Operator is already on this account |
 | 6007 | `InsufficientBalance` | Account doesn't have enough tokens for this transfer |
 | 6008 | `MathOverflow` | Arithmetic overflow in calculation |
-
-### Escrow Program Errors (Handshake)
-
-| Code | Name | Description |
-|------|------|-------------|
-| 6000 | `TransferAlreadyClaimed` | Transfer has already been claimed |
-| 6001 | `TransferAlreadyCancelled` | Transfer has already been cancelled |
-| 6002 | `TransferExpired` | Transfer has expired |
-| 6003 | `ClaimTooEarly` | Cannot claim before `claimableAfter` timestamp |
-| 6004 | `Unauthorized` | Signer is not authorized for this action |
-| 6005 | `PoolPaused` | The token's escrow pool is temporarily paused — try again later |
-| 6006 | `InsufficientFunds` | Sender has insufficient token balance |
 
 ### API Errors
 
@@ -856,11 +683,6 @@ Send a message to the Silkyway support agent. Returns an AI-generated response.
    "message": "Human-readable description"
 }
 ```
-
-## Rate Limits
-
-- Faucet: 1 request per wallet per 10 minutes
-- Faucet is devnet only
 
 ## Security
 
