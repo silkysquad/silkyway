@@ -14,7 +14,8 @@ silkysig = "8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+#cluster = "localnet"
+cluster = "https://serene-shy-silence.solana-devnet.quiknode.pro/101359e31c4f79802f09c3d6f66cef11b1e7b00b/"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

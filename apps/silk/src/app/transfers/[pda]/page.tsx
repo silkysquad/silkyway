@@ -11,6 +11,10 @@ import { SolscanLink } from '@/components/SolscanLink';
 import { solscanUrl } from '@/lib/solscan';
 import type { TransferInfo } from '@silkyway/sdk/dist/transfers.js';
 
+function formatAmount(raw: string | number, decimals: number) {
+  return (Number(raw) / 10 ** decimals).toFixed(2);
+}
+
 export default function TransferDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -122,7 +126,7 @@ export default function TransferDetailPage() {
             {isSender ? 'Sent Transfer' : isRecipient ? 'Received Transfer' : 'Transfer Detail'}
           </div>
           <h1 className="font-display text-4xl font-black text-star-white">
-            {transfer.amount} {transfer.token.symbol}
+            {formatAmount(transfer.amount, transfer.token.decimals)} {transfer.token.symbol}
           </h1>
         </div>
         <StatusBadge status={transfer.status} />
@@ -137,7 +141,7 @@ export default function TransferDetailPage() {
           <DetailRow label="Transfer PDA" value={transfer.transferPda} highlight={false} />
           <DetailRow label="Sender" value={transfer.sender} highlight={isSender} />
           <DetailRow label="Recipient" value={transfer.recipient} highlight={isRecipient} />
-          <DetailRow label="Amount" value={`${transfer.amount} ${transfer.token.symbol}`} highlight={false} />
+          <DetailRow label="Amount" value={`${formatAmount(transfer.amount, transfer.token.decimals)} ${transfer.token.symbol}`} highlight={false} />
           <DetailRow label="Token" value={`${transfer.token.name} (${transfer.token.symbol})`} highlight={false} />
           {transfer.memo && <DetailRow label="Memo" value={transfer.memo} highlight={false} />}
           <DetailRow label="Created" value={new Date(transfer.createdAt).toLocaleString()} highlight={false} />
@@ -161,6 +165,11 @@ export default function TransferDetailPage() {
           {transfer.cancelTxid && <TxLink label="Cancel TX" txid={transfer.cancelTxid} />}
         </div>
       </div>
+
+      {/* Share Link */}
+      {isSender && isActive && (
+        <ShareLink pda={pda} />
+      )}
 
       {/* Actions */}
       {isConnected && isActive && (canClaim || canCancel) && (
@@ -205,6 +214,39 @@ function TxLink({ label, txid }: { label: string; txid: string }) {
     <div className="flex items-center justify-between">
       <span className="text-[0.75rem] uppercase tracking-[0.1em] text-star-white/30">{label}</span>
       <SolscanLink address={txid} type="tx" />
+    </div>
+  );
+}
+
+function ShareLink({ pda }: { pda: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== 'undefined' ? `${window.location.origin}/transfers/${pda}` : '';
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mb-6 border border-nebula-purple/20 p-6" style={{ background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, rgba(12, 0, 21, 0.8) 100%)' }}>
+      <h2 className="mb-2 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
+        Share with Recipient
+      </h2>
+      <p className="mb-4 text-[0.75rem] text-star-white/40">
+        Send this link to the recipient so they can claim the transfer.
+      </p>
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 border border-nebula-purple/15 bg-deep-space/80 px-3 py-2.5">
+          <p className="truncate text-[0.75rem] text-star-white/50" title={url}>{url}</p>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="shrink-0 h-10 border border-solar-gold/30 bg-solar-gold/10 px-4 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18"
+        >
+          {copied ? 'Copied!' : 'Copy Link'}
+        </button>
+      </div>
     </div>
   );
 }

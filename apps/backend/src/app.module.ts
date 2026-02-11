@@ -14,10 +14,6 @@ import { ChatModule } from './chat/chat.module';
     MikroOrmModule.forRoot({}),
     ServeStaticModule.forRoot(
       {
-        rootPath: join(__dirname, '..', '.well-known'),
-        serveRoot: '/.well-known',
-      },
-      {
         rootPath: join(__dirname, '..', 'public'),
         serveRoot: '/',
         serveStaticOptions: { index: false },

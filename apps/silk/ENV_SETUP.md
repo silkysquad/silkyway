@@ -7,9 +7,9 @@
    cp .env.sample .env.local
    ```
 
-2. The `.env.local` file contains sensible defaults for local development:
-   - Backend API: `http://localhost:3000`
-   - Solana RPC: `https://api.devnet.solana.com`
+2. The `.env.local` file contains sensible defaults for local development. Override as needed:
+   - Devnet API: `http://localhost:3000` (default when no env vars set)
+   - Devnet RPC: `https://api.devnet.solana.com`
 
 3. Start the development server:
    ```bash
@@ -18,23 +18,23 @@
 
 ## Production Deployment
 
-### Required Environment Variables
-
-Production builds **require** explicit configuration. Set these in your deployment platform (Vercel, Netlify, etc.):
+The frontend supports both mainnet and devnet via a network toggle in the header. Set env vars for both clusters:
 
 ```bash
-# Backend API URL (REQUIRED in production)
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+# Mainnet
+NEXT_PUBLIC_MAINNET_RPC_URL=https://api.mainnet-beta.solana.com
+NEXT_PUBLIC_MAINNET_API_URL=https://api.silkyway.ai
 
-# Solana RPC endpoint (REQUIRED in production)
-NEXT_PUBLIC_SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+# Devnet
+NEXT_PUBLIC_DEVNET_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_DEVNET_API_URL=https://devnet.silkyway.ai
 ```
 
 ### Vercel Deployment
 
 1. Add environment variables in Vercel dashboard:
    - Go to Project Settings → Environment Variables
-   - Add `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOLANA_RPC_URL`
+   - Add all four `NEXT_PUBLIC_*` variables above
    - Apply to Production, Preview, and Development environments as needed
 
 2. Redeploy to apply changes
@@ -48,18 +48,14 @@ Add the environment variables according to your platform's documentation:
 
 ## Environment Variables Reference
 
-| Variable | Description | Development Default | Production Example |
-|----------|-------------|-------------------|-------------------|
-| `NEXT_PUBLIC_API_URL` | Backend API endpoint | `http://localhost:3000` | `https://api.yourdomain.com` |
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana RPC endpoint | `https://api.devnet.solana.com` | `https://api.mainnet-beta.solana.com` |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_MAINNET_RPC_URL` | Mainnet Solana RPC endpoint | `https://api.mainnet-beta.solana.com` |
+| `NEXT_PUBLIC_MAINNET_API_URL` | Mainnet backend API | `https://api.silkyway.ai` |
+| `NEXT_PUBLIC_DEVNET_RPC_URL` | Devnet Solana RPC endpoint | `https://api.devnet.solana.com` |
+| `NEXT_PUBLIC_DEVNET_API_URL` | Devnet backend API | `https://devnet.silkyway.ai` |
 
 ## Troubleshooting
-
-### "NEXT_PUBLIC_API_URL is required in production" error
-
-This error occurs when deploying to production without setting the required environment variables. Make sure to:
-1. Set `NEXT_PUBLIC_API_URL` in your deployment platform
-2. Redeploy the application
 
 ### CORS errors when connecting to backend
 

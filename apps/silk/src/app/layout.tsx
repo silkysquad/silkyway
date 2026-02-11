@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
 import JotaiProvider from '@/providers/JotaiProvider';
+import { ClusterProvider } from '@/contexts/ClusterContext';
 import { WalletContextProvider } from '@/providers/WalletProvider';
 import { Header } from '@/components/layout/Header';
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         <div className="nebula" />
         <div className="corona" />
         <JotaiProvider>
+          <ClusterProvider>
           <WalletContextProvider>
             <div className="relative z-10">
               <Header />
@@ -51,6 +53,7 @@ export default function RootLayout({
               }}
             />
           </WalletContextProvider>
+          </ClusterProvider>
         </JotaiProvider>
       </body>
     </html>

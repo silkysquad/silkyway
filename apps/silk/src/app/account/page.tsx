@@ -258,7 +258,7 @@ export default function AccountDashboardPage() {
       await signAndSubmit(transaction);
       toast.success('Account closed — tokens swept to your wallet');
       setShowCloseConfirm(false);
-      setTimeout(() => router.push('/account/setup'), 1500);
+      setTimeout(() => router.push('/'), 1500);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to close account');
     } finally {

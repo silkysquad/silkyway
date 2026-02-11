@@ -7,6 +7,10 @@ import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { transfersAtom, isLoadingTransfersAtom } from '@/_jotai/transfer/transfer.state';
 
+function formatAmount(raw: string | number, decimals: number) {
+  return (Number(raw) / 10 ** decimals).toFixed(2);
+}
+
 export default function TransfersPage() {
   const { publicKey, isConnected } = useConnectedWallet();
   const { fetchTransfers } = useTransferActions();
@@ -91,7 +95,7 @@ export default function TransfersPage() {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-[0.85rem] font-medium text-star-white">
-                        {transfer.amount} {transfer.token.symbol}
+                        {formatAmount(transfer.amount, transfer.token.decimals)} {transfer.token.symbol}
                       </p>
                       <p className="text-[0.65rem] text-star-white/25">
                         {new Date(transfer.createdAt).toLocaleDateString()}

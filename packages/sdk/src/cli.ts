@@ -6,7 +6,7 @@ import { pay } from './commands/pay.js';
 import { claim } from './commands/claim.js';
 import { cancel } from './commands/cancel.js';
 import { paymentsList, paymentsGet } from './commands/payments.js';
-import { configSetApiUrl, configGetApiUrl, configResetApiUrl } from './commands/config.js';
+import { configSetApiUrl, configGetApiUrl, configResetApiUrl, configSetCluster, configGetCluster, configResetCluster } from './commands/config.js';
 import { accountSync, accountStatus, accountSend } from './commands/account.js';
 import { chat } from './commands/chat.js';
 import { wrapCommand } from './output.js';
@@ -34,7 +34,7 @@ wallet
   .option('--sol', 'Request SOL only')
   .option('--usdc', 'Request USDC only')
   .option('--wallet <label>', 'Wallet to fund')
-  .description('Fund wallet from devnet faucet')
+  .description('Fund wallet from devnet faucet (devnet only)')
   .action(wrapCommand(walletFund));
 
 // balance
@@ -98,6 +98,19 @@ config
   .command('reset-api-url')
   .description('Reset API URL to default')
   .action(wrapCommand(configResetApiUrl));
+config
+  .command('set-cluster')
+  .argument('<cluster>', 'Cluster: mainnet-beta or devnet')
+  .description('Set the Solana cluster')
+  .action(wrapCommand(configSetCluster));
+config
+  .command('get-cluster')
+  .description('Show the current Solana cluster')
+  .action(wrapCommand(configGetCluster));
+config
+  .command('reset-cluster')
+  .description('Reset cluster to default (mainnet-beta)')
+  .action(wrapCommand(configResetCluster));
 
 // account commands
 const account = program.command('account').description('Manage Silkysig account');

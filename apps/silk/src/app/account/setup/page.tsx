@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
 import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useAccountActions } from '@/_jotai/account/account.actions';
@@ -71,13 +71,7 @@ function AccountSetupContent() {
   }, [step, isConnected]);
 
   if (!agentValid) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-8">
-        <p className="text-[0.85rem] text-star-white/40">
-          Missing agent address in URL.
-        </p>
-      </div>
-    );
+    return <AgentAddressPrompt />;
   }
 
   const walletAddress = publicKey?.toBase58() ?? '';
@@ -358,6 +352,74 @@ function AccountSetupContent() {
             </Link>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function AgentAddressPrompt() {
+  const router = useRouter();
+  const [key, setKey] = useState('');
+  const [error, setError] = useState('');
+
+  const handleContinue = () => {
+    setError('');
+    try {
+      new PublicKey(key.trim());
+      router.replace(`/account/setup?agent=${key.trim()}`);
+    } catch {
+      setError('Invalid Solana public key. Please check and try again.');
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-xl px-8 py-10">
+      <div className="mb-8">
+        <div className="text-[0.65rem] uppercase tracking-[0.3em] text-nebula-purple/60">
+          Account Setup
+        </div>
+        <h1 className="font-display text-3xl font-black uppercase tracking-wide text-star-white">
+          Enter Agent Address
+        </h1>
+      </div>
+
+      <div
+        className="gradient-border-top border border-nebula-purple/20 p-6"
+        style={{ background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, rgba(12, 0, 21, 0.8) 100%)' }}
+      >
+        <div className="mb-5 border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4">
+          <p className="text-[0.8rem] font-medium text-nebula-purple">What is an agent address?</p>
+          <p className="mt-1 text-[0.75rem] text-star-white/40">
+            It is the Solana public key of the AI agent (operator) you want to authorize to make payments from your account.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="agentKey" className="block text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">
+              Agent public key
+            </label>
+            <input
+              id="agentKey"
+              type="text"
+              value={key}
+              onChange={(e) => { setKey(e.target.value); setError(''); }}
+              placeholder="e.g. 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+              className="w-full border border-nebula-purple/20 bg-deep-space/80 px-3 py-2.5 text-[0.8rem] text-star-white placeholder:text-star-white/15 transition-colors focus:border-solar-gold/30 focus:outline-none"
+            />
+            {error && (
+              <p className="text-[0.75rem] text-red-400">{error}</p>
+            )}
+          </div>
+
+          <button
+            onClick={handleContinue}
+            disabled={!key.trim()}
+            className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
+          >
+            Continue
+          </button>
+        </div>
       </div>
     </div>
   );

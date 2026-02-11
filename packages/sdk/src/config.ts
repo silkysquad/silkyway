@@ -23,17 +23,20 @@ export interface AccountInfo {
   syncedAt: string;
 }
 
+export type SolanaCluster = 'mainnet-beta' | 'devnet';
+
 export interface HandshakeConfig {
   wallets: WalletEntry[];
   defaultWallet: string;
   preferences: Record<string, unknown>;
   apiUrl?: string;
+  cluster?: SolanaCluster;
   account?: AccountInfo;
   agentId?: string;
 }
 
 function defaultConfig(): HandshakeConfig {
-  return { wallets: [], defaultWallet: 'main', preferences: {} };
+  return { wallets: [], defaultWallet: 'main', preferences: {}, cluster: 'mainnet-beta' };
 }
 
 export function loadConfig(): HandshakeConfig {
@@ -59,8 +62,17 @@ export function getWallet(config: HandshakeConfig, label?: string): WalletEntry 
   return wallet;
 }
 
+const CLUSTER_API_URLS: Record<SolanaCluster, string> = {
+  'mainnet-beta': 'https://api.silkyway.ai',
+  'devnet': 'https://devnet.silkyway.ai',
+};
+
+export function getCluster(config: HandshakeConfig): SolanaCluster {
+  return config.cluster || 'mainnet-beta';
+}
+
 export function getApiUrl(config: HandshakeConfig): string {
-  return config.apiUrl || process.env.SILK_API_URL || 'https://silkyway.ai';
+  return config.apiUrl || process.env.SILK_API_URL || CLUSTER_API_URLS[getCluster(config)];
 }
 
 export function getAgentId(config: HandshakeConfig): string {

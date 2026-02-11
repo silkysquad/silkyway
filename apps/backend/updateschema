@@ -1,1 +1,11 @@
+#!/bin/bash
+# Usage: ./updateschema [mainnet|devnet]
+# Defaults to .env values if no argument given
+
+if [ "$1" = "mainnet" ]; then
+  export $(grep -v '^#' .env.mainnet | xargs)
+elif [ "$1" = "devnet" ]; then
+  export $(grep -v '^#' .env.devnet | xargs)
+fi
+
 npx mikro-orm schema:update -r --fk-checks=true

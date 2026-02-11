@@ -1,19 +1,23 @@
 import { Controller, Get, Param, Res, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { PublicKey } from '@solana/web3.js';
 import { TransferService } from '../service/transfer.service';
 import { Transfer, TransferStatus } from '../../db/models/Transfer';
 
 const EXPLORER = 'https://solscan.io';
-const CLUSTER = 'devnet';
 const PROGRAM_ID = 'HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg';
 
-function explorerAddr(addr: string): string {
-  return `${EXPLORER}/account/${addr}?cluster=${CLUSTER}`;
+function clusterParam(cluster: string): string {
+  return cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
 }
 
-function explorerTx(sig: string): string {
-  return `${EXPLORER}/tx/${sig}?cluster=${CLUSTER}`;
+function explorerAddr(addr: string, cluster: string): string {
+  return `${EXPLORER}/account/${addr}${clusterParam(cluster)}`;
+}
+
+function explorerTx(sig: string, cluster: string): string {
+  return `${EXPLORER}/tx/${sig}${clusterParam(cluster)}`;
 }
 
 function shortAddr(addr: string): string {
@@ -46,7 +50,11 @@ function timeAgo(date: Date): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-function pageShell(title: string, body: string): string {
+function clusterDisplayName(cluster: string): string {
+  return cluster === 'mainnet-beta' ? 'Mainnet' : 'Devnet';
+}
+
+function pageShell(title: string, body: string, cluster: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -117,8 +125,8 @@ function pageShell(title: string, body: string): string {
     </div>
     ${body}
     <div class="footer">
-      <a class="program-link" href="${explorerAddr(PROGRAM_ID)}" target="_blank" rel="noopener">${PROGRAM_ID}</a>
-      <br>Silkyway &middot; Programmable USDC Escrow on Solana Devnet
+      <a class="program-link" href="${explorerAddr(PROGRAM_ID, cluster)}" target="_blank" rel="noopener">${PROGRAM_ID}</a>
+      <br>Silkyway &middot; Programmable USDC Escrow on Solana ${clusterDisplayName(cluster)}
     </div>
   </div>
 </body>
@@ -127,7 +135,14 @@ function pageShell(title: string, body: string): string {
 
 @Controller()
 export class ViewController {
-  constructor(private readonly transferService: TransferService) {}
+  private readonly cluster: string;
+
+  constructor(
+    private readonly transferService: TransferService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cluster = this.configService.get<string>('SOLANA_CLUSTER', 'devnet');
+  }
 
   @Get('activity')
   async activity(@Res() res: Response) {
@@ -149,8 +164,8 @@ export class ViewController {
         rows += `<tr>
           <td>${statusBadge(t.status)}</td>
           <td>${amount} ${symbol}</td>
-          <td><a href="${explorerAddr(t.sender)}" target="_blank" rel="noopener" title="${t.sender}">${shortAddr(t.sender)}</a></td>
-          <td><a href="${explorerAddr(t.recipient)}" target="_blank" rel="noopener" title="${t.recipient}">${shortAddr(t.recipient)}</a></td>
+          <td><a href="${explorerAddr(t.sender, this.cluster)}" target="_blank" rel="noopener" title="${t.sender}">${shortAddr(t.sender)}</a></td>
+          <td><a href="${explorerAddr(t.recipient, this.cluster)}" target="_blank" rel="noopener" title="${t.recipient}">${shortAddr(t.recipient)}</a></td>
           <td>${t.memo || '—'}</td>
           <td><a href="/activity/${t.transferPda}">${shortAddr(t.transferPda)}</a> · ${timeAgo(t.createdAt)}</td>
         </tr>`;
@@ -160,7 +175,7 @@ export class ViewController {
     const body = `
     <div class="header">
       <h1>Transfer Activity</h1>
-      <div class="sub">Live escrow transfers on Solana devnet</div>
+      <div class="sub">Live escrow transfers on Solana ${clusterDisplayName(this.cluster).toLowerCase()}</div>
     </div>
     <div class="stats">
       <div class="stat"><div class="value">${total}</div><div class="label">Total Transfers</div></div>
@@ -175,7 +190,7 @@ export class ViewController {
     </table>`;
 
     res.set({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=15' });
-    res.send(pageShell('Transfer Activity', body));
+    res.send(pageShell('Transfer Activity', body, this.cluster));
   }
 
   @Get('activity/:pda')
@@ -194,9 +209,10 @@ export class ViewController {
     const amount = formatAmount(transfer.amountRaw, transfer.token?.decimals ?? 6);
     const symbol = transfer.token?.symbol ?? 'USDC';
 
+    const cluster = this.cluster;
     function txLink(txid: string | undefined, label: string): string {
       if (!txid) return '—';
-      return `<a href="${explorerTx(txid)}" target="_blank" rel="noopener">${shortAddr(txid)} ↗</a>`;
+      return `<a href="${explorerTx(txid, cluster)}" target="_blank" rel="noopener">${shortAddr(txid)} ↗</a>`;
     }
 
     function dateStr(d: Date | undefined): string {
@@ -207,16 +223,16 @@ export class ViewController {
     const body = `
     <div class="header">
       <h1>Transfer Detail</h1>
-      <div class="sub"><a href="${explorerAddr(transfer.transferPda)}" target="_blank" rel="noopener">${transfer.transferPda}</a></div>
+      <div class="sub"><a href="${explorerAddr(transfer.transferPda, this.cluster)}" target="_blank" rel="noopener">${transfer.transferPda}</a></div>
     </div>
     <div class="detail-card">
       <div class="amount-large">${amount} ${symbol}</div>
       <div style="text-align:center; margin-bottom:1.5rem;">${statusBadge(transfer.status)}</div>
-      <div class="detail-row"><span class="detail-label">Sender</span><span class="detail-value"><a href="${explorerAddr(transfer.sender)}" target="_blank" rel="noopener">${transfer.sender}</a></span></div>
-      <div class="detail-row"><span class="detail-label">Recipient</span><span class="detail-value"><a href="${explorerAddr(transfer.recipient)}" target="_blank" rel="noopener">${transfer.recipient}</a></span></div>
+      <div class="detail-row"><span class="detail-label">Sender</span><span class="detail-value"><a href="${explorerAddr(transfer.sender, this.cluster)}" target="_blank" rel="noopener">${transfer.sender}</a></span></div>
+      <div class="detail-row"><span class="detail-label">Recipient</span><span class="detail-value"><a href="${explorerAddr(transfer.recipient, this.cluster)}" target="_blank" rel="noopener">${transfer.recipient}</a></span></div>
       <div class="detail-row"><span class="detail-label">Memo</span><span class="detail-value">${transfer.memo || '—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Pool</span><span class="detail-value"><a href="${explorerAddr(transfer.pool?.poolPda)}" target="_blank" rel="noopener">${shortAddr(transfer.pool?.poolPda ?? '')}</a> (${transfer.pool?.feeBps ?? 0} bps fee)</span></div>
-      <div class="detail-row"><span class="detail-label">Token Mint</span><span class="detail-value"><a href="${explorerAddr(transfer.token?.mint ?? '')}" target="_blank" rel="noopener">${transfer.token?.mint ?? '—'}</a></span></div>
+      <div class="detail-row"><span class="detail-label">Pool</span><span class="detail-value"><a href="${explorerAddr(transfer.pool?.poolPda, this.cluster)}" target="_blank" rel="noopener">${shortAddr(transfer.pool?.poolPda ?? '')}</a> (${transfer.pool?.feeBps ?? 0} bps fee)</span></div>
+      <div class="detail-row"><span class="detail-label">Token Mint</span><span class="detail-value"><a href="${explorerAddr(transfer.token?.mint ?? '', this.cluster)}" target="_blank" rel="noopener">${transfer.token?.mint ?? '—'}</a></span></div>
       <div class="detail-row"><span class="detail-label">Created</span><span class="detail-value">${dateStr(transfer.createdAt)}</span></div>
       <div class="detail-row"><span class="detail-label">Create Tx</span><span class="detail-value">${txLink(transfer.createTxid, 'Create')}</span></div>
       <div class="detail-row"><span class="detail-label">Claim Tx</span><span class="detail-value">${txLink(transfer.claimTxid, 'Claim')}</span></div>
@@ -226,6 +242,6 @@ export class ViewController {
     </div>`;
 
     res.set({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=15' });
-    res.send(pageShell(`Transfer ${shortAddr(pda)}`, body));
+    res.send(pageShell(`Transfer ${shortAddr(pda)}`, body, this.cluster));
   }
 }

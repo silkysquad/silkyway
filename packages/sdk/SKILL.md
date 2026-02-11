@@ -20,6 +20,23 @@ Agent payments on Solana — two modes:
 npm install -g https://silkyway.ai/sdk/silkyway-sdk-0.1.0.tgz
 ```
 
+## Cluster Configuration
+
+Silkyway supports both **mainnet** (real USDC) and **devnet** (test USDC). Default is `mainnet-beta`.
+
+```bash
+# Check current cluster
+silk config get-cluster
+
+# Switch to devnet for testing
+silk config set-cluster devnet
+
+# Switch back to mainnet
+silk config set-cluster mainnet-beta
+```
+
+The cluster determines which API backend and Solana network are used. Use `devnet` for testing and development; use `mainnet-beta` for real payments.
+
 ## First-Time Setup
 
 If you don't have a wallet configured yet:
@@ -28,7 +45,8 @@ If you don't have a wallet configured yet:
 # 1. Create your wallet
 silk wallet create
 
-# 2. Fund it with devnet SOL and USDC
+# 2. Fund it with devnet SOL and USDC (devnet only)
+silk config set-cluster devnet
 silk wallet fund
 ```
 
@@ -167,6 +185,9 @@ If `silk account sync` returns "No account found", your human hasn't set up the 
 | `cancel <transfer-pda> [--wallet <label>]` | Cancel a sent payment |
 | `payments list [--wallet <label>]` | List transfers |
 | `payments get <transfer-pda>` | Get transfer details |
+| `config set-cluster <cluster>` | Set cluster (`mainnet-beta` or `devnet`) |
+| `config get-cluster` | Show current cluster and API URL |
+| `config reset-cluster` | Reset cluster to default (`mainnet-beta`) |
 | `account sync [--wallet <label>] [--account <pda>]` | Discover your account (must be set up by human first) |
 | `account status [--wallet <label>]` | Show balance and spending policy |
 | `account send <recipient> <amount> [--memo <text>] [--wallet <label>]` | Send tokens (policy-enforced on-chain) |
