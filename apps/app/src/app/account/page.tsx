@@ -11,6 +11,7 @@ import { SolscanLink } from '@/components/SolscanLink';
 import { solscanUrl } from '@/lib/solscan';
 import { toast } from 'react-toastify';
 import { useCluster } from '@/contexts/ClusterContext';
+import { AccountExplainer } from '@/components/AccountExplainer';
 
 const PROGRAM_ID = new PublicKey('SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS');
 
@@ -116,12 +117,6 @@ export default function AccountDashboardPage() {
       loadAccount();
     }
   }, [isConnected, loadAccount]);
-
-  useEffect(() => {
-    if (!loading && !account && isConnected) {
-      router.push('/account/setup');
-    }
-  }, [loading, account, isConnected, router]);
 
   // ── Deposit handlers ──
 
@@ -325,7 +320,7 @@ export default function AccountDashboardPage() {
     );
   }
 
-  if (!account) return null;
+  if (!account) return <AccountExplainer />;
 
   return (
     <div className="mx-auto max-w-xl px-8 py-10">

@@ -199,17 +199,12 @@ function AccountSetupContent() {
     }
   };
 
-  // Auto-advance from connect to configure when wallet connects
+  // Auto-advance from connect to configure when wallet connects (agent flow only)
   useEffect(() => {
-    if (step === 'connect' && isConnected) {
-      if (agentParam) {
-        setStep('configure');
-      } else {
-        // No agent - skip configure and create account immediately
-        handleCreateWithoutAgent();
-      }
+    if (step === 'connect' && isConnected && agentParam) {
+      setStep('configure');
     }
-  }, [step, isConnected, agentParam, handleCreateWithoutAgent]);
+  }, [step, isConnected, agentParam]);
 
   const stepLabels: Record<Step, string> = {
     connect: 'Connect & Learn',
@@ -241,9 +236,21 @@ function AccountSetupContent() {
         {step === 'connect' && !agentParam && isConnected && (
           <div className="space-y-5">
             <h2 className="mb-5 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
-              Setting Up
+              Create Account
             </h2>
-            <p className="text-[0.85rem] text-star-white/40">Creating your account...</p>
+            <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4 space-y-2">
+              <p className="text-[0.8rem] font-medium text-nebula-purple">How it works</p>
+              <p className="text-[0.75rem] text-star-white/40">You&apos;re creating an on-chain account controlled by your wallet.</p>
+              <p className="text-[0.75rem] text-star-white/40">You&apos;re the owner — full access, always.</p>
+              <p className="text-[0.75rem] text-star-white/40">Add agents later from your dashboard to enable automated payments with spending limits.</p>
+            </div>
+            <button
+              onClick={handleCreateWithoutAgent}
+              disabled={isCreating || !usdcMint}
+              className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
+            >
+              {isCreating ? 'Creating...' : 'Create Account'}
+            </button>
           </div>
         )}
         {step === 'connect' && agentParam && (
@@ -273,6 +280,12 @@ function AccountSetupContent() {
             <h2 className="mb-5 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
               Connect Wallet
             </h2>
+            <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4 space-y-2">
+              <p className="text-[0.8rem] font-medium text-nebula-purple">How it works</p>
+              <p className="text-[0.75rem] text-star-white/40">You&apos;re creating an on-chain account controlled by your wallet.</p>
+              <p className="text-[0.75rem] text-star-white/40">You&apos;re the owner — full access, always.</p>
+              <p className="text-[0.75rem] text-star-white/40">Add agents later from your dashboard to enable automated payments with spending limits.</p>
+            </div>
             <p className="text-[0.8rem] text-star-white/40">
               Connect your wallet using the button in the header to continue.
             </p>
