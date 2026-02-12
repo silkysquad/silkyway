@@ -8,7 +8,7 @@ import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import {
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddressSync,
-  createMintToInstruction,
+  createTransferInstruction,
   getAccount,
 } from '@solana/spl-token';
 import { HandshakeClient, generateNamedPoolId } from './handshake-client';
@@ -30,7 +30,7 @@ export class SolanaService implements OnModuleInit {
   private silkysigClient: SilkysigClient;
   private systemSigner: Keypair;
 
-  // USDC faucet (system signer is the mint authority)
+  // USDC faucet (transfers from system wallet balance)
   private usdcMintAddress: PublicKey | null = null;
 
   // Faucet rate limiting (in-memory)
@@ -84,11 +84,11 @@ export class SolanaService implements OnModuleInit {
     this.silkysigClient = new SilkysigClient(silkysigProgram);
     this.logger.log(`Silkysig program ${silkysigProgramId}`);
 
-    // Load USDC mint config (system signer is the mint authority)
+    // Load USDC mint config (transfers from system wallet balance)
     const usdcMint = this.configService.get<string>('USDC_MINT_ADDRESS');
     if (usdcMint) {
       this.usdcMintAddress = new PublicKey(usdcMint);
-      this.logger.log(`USDC faucet configured: mint ${usdcMint} (authority: system signer)`);
+      this.logger.log(`USDC faucet configured: mint ${usdcMint} (transfers from system wallet)`);
     }
 
     // Sync token and pool to database from on-chain state
@@ -211,7 +211,7 @@ export class SolanaService implements OnModuleInit {
     return { sol: { amount: 0.1, txid } };
   }
 
-  async mintUsdc(wallet: PublicKey, amount: number = 100): Promise<{ usdc: { amount: number; txid: string } }> {
+  async transferUsdc(wallet: PublicKey, amount: number = 100): Promise<{ usdc: { amount: number; txid: string } }> {
     if (!this.usdcMintAddress) {
       throw new Error('USDC faucet not configured. Set USDC_MINT_ADDRESS in .env.');
     }
@@ -219,45 +219,46 @@ export class SolanaService implements OnModuleInit {
     const walletStr = `usdc:${wallet.toBase58()}`;
     this.checkRateLimit(walletStr);
 
-    const ata = getAssociatedTokenAddressSync(this.usdcMintAddress, wallet, true);
+    const sourceAta = getAssociatedTokenAddressSync(this.usdcMintAddress, this.systemSigner.publicKey, true);
+    const destAta = getAssociatedTokenAddressSync(this.usdcMintAddress, wallet, true);
 
     const tx = new Transaction();
 
-    // Create ATA if it doesn't exist
+    // Create destination ATA if it doesn't exist
     try {
-      this.logger.debug(`[RPC] getAccount for ATA ${ata.toBase58()}`);
-      await getAccount(this.connection, ata);
+      this.logger.debug(`[RPC] getAccount for ATA ${destAta.toBase58()}`);
+      await getAccount(this.connection, destAta);
     } catch {
       tx.add(
         createAssociatedTokenAccountInstruction(
           this.systemSigner.publicKey,
-          ata,
+          destAta,
           wallet,
           this.usdcMintAddress,
         ),
       );
     }
 
-    // Mint tokens (amount * 10^6 for 6 decimals)
+    // Transfer tokens from system wallet (amount * 10^6 for 6 decimals)
     const rawAmount = amount * 1e6;
     tx.add(
-      createMintToInstruction(
-        this.usdcMintAddress,
-        ata,
+      createTransferInstruction(
+        sourceAta,
+        destAta,
         this.systemSigner.publicKey,
         rawAmount,
       ),
     );
 
-    this.logger.debug(`[RPC] getLatestBlockhash for mintUsdc to ${wallet.toBase58()}`);
+    this.logger.debug(`[RPC] getLatestBlockhash for transferUsdc to ${wallet.toBase58()}`);
     const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
     tx.recentBlockhash = blockhash;
     tx.feePayer = this.systemSigner.publicKey;
     tx.sign(this.systemSigner);
 
-    this.logger.debug(`[RPC] sendRawTransaction for mintUsdc`);
+    this.logger.debug(`[RPC] sendRawTransaction for transferUsdc`);
     const txid = await this.connection.sendRawTransaction(tx.serialize());
-    this.logger.debug(`[RPC] confirmTransaction for mintUsdc: ${txid}`);
+    this.logger.debug(`[RPC] confirmTransaction for transferUsdc: ${txid}`);
     await this.connection.confirmTransaction(txid, 'confirmed');
 
     this.faucetLastRequest.set(walletStr, Date.now());
@@ -288,18 +289,19 @@ export class SolanaService implements OnModuleInit {
       );
     }
 
-    // USDC ATA creation + mint instructions
+    // USDC ATA creation + transfer instructions
     if (opts.usdc) {
-      const ata = getAssociatedTokenAddressSync(this.usdcMintAddress!, wallet, true);
+      const sourceAta = getAssociatedTokenAddressSync(this.usdcMintAddress!, this.systemSigner.publicKey, true);
+      const destAta = getAssociatedTokenAddressSync(this.usdcMintAddress!, wallet, true);
 
       try {
-        this.logger.debug(`[RPC] getAccount for ATA ${ata.toBase58()}`);
-        await getAccount(this.connection, ata);
+        this.logger.debug(`[RPC] getAccount for ATA ${destAta.toBase58()}`);
+        await getAccount(this.connection, destAta);
       } catch {
         tx.add(
           createAssociatedTokenAccountInstruction(
             this.systemSigner.publicKey,
-            ata,
+            destAta,
             wallet,
             this.usdcMintAddress!,
           ),
@@ -308,9 +310,9 @@ export class SolanaService implements OnModuleInit {
 
       const rawAmount = 100 * 1e6;
       tx.add(
-        createMintToInstruction(
-          this.usdcMintAddress!,
-          ata,
+        createTransferInstruction(
+          sourceAta,
+          destAta,
           this.systemSigner.publicKey,
           rawAmount,
         ),

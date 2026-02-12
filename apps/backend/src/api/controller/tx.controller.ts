@@ -87,7 +87,7 @@ export class TxController {
         const data = await this.solanaService.transferSol(wallet);
         return { ok: true, data };
       } else if (body.token === 'usdc') {
-        const data = await this.solanaService.mintUsdc(wallet);
+        const data = await this.solanaService.transferUsdc(wallet);
         return { ok: true, data };
       } else {
         throw new BadRequestException({ ok: false, error: 'UNSUPPORTED_TOKEN', message: `Token '${body.token}' not supported. Use 'sol', 'usdc', or 'both'.` });
@@ -96,6 +96,7 @@ export class TxController {
       if (e.message?.startsWith('RATE_LIMITED')) {
         throw new BadRequestException({ ok: false, error: 'RATE_LIMITED', message: e.message });
       }
+      this.logger.error(`Faucet failed for ${body.wallet}: ${e.message}`);
       throw new BadRequestException({ ok: false, error: 'FAUCET_FAILED', message: e.message });
     }
   }
