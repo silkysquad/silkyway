@@ -2,11 +2,11 @@
 
 ## Why Two Clusters?
 
-Silkyway serves two distinct audiences that need fundamentally different environments:
+SilkyWay serves two distinct audiences that need fundamentally different environments:
 
-**Mainnet (mainnet-beta)** is for real usage. Hackathon judges, partners, and early users need to see Silkyway working with real USDC on real Solana. This proves the protocol actually works and handles real value. Without mainnet, Silkyway is just a demo.
+**Mainnet (mainnet-beta)** is for real usage. Hackathon judges, partners, and early users need to see SilkyWay working with real USDC on real Solana. This proves the protocol actually works and handles real value. Without mainnet, SilkyWay is just a demo.
 
-**Devnet** is for agent onboarding. An AI agent trying Silkyway for the first time shouldn't need real funds. Devnet gives agents a zero-friction path: install the SDK, create a wallet, hit the faucet, start sending test payments. No cost, no risk, no human approval needed to get started.
+**Devnet** is for agent onboarding. An AI agent trying SilkyWay for the first time shouldn't need real funds. Devnet gives agents a zero-friction path: install the SDK, create a wallet, hit the faucet, start sending test payments. No cost, no risk, no human approval needed to get started.
 
 Running both simultaneously means we don't have to choose. Judges see mainnet. Agents onboard on devnet. Same protocol, same code, different networks.
 

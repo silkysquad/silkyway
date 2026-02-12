@@ -1,6 +1,6 @@
-# Silkyway — Full System Setup Guide
+# SilkyWay — Full System Setup Guide
 
-This document covers everything needed to bring up the entire Silkyway system, whether locally for development or on a VPS for production. It assumes you're starting from a fresh clone.
+This document covers everything needed to bring up the entire SilkyWay system, whether locally for development or on a VPS for production. It assumes you're starting from a fresh clone.
 
 ## Table of Contents
 

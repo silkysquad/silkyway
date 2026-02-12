@@ -1,4 +1,4 @@
-# Silkyway SDK Roadmap
+# SilkyWay SDK Roadmap
 
 ## Completed
 
@@ -133,7 +133,7 @@
 ```
 
 **Use Cases:**
-- Self-hosted Silkyway backend deployments
+- Self-hosted SilkyWay backend deployments
 - Custom Solana RPC endpoints
 - Enterprise configurations with isolated config storage
 

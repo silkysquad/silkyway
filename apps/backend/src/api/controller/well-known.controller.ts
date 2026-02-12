@@ -13,7 +13,7 @@ export class WellKnownController {
   @Get('agent.json')
   agentJson() {
     return {
-      name: 'Silkyway',
+      name: 'SilkyWay',
       description:
         'Programmable USDC escrow payments on Solana for autonomous agents. Send, claim, and cancel time-locked payments with zero-config onboarding via CLI or HTTP API.',
       version: '0.1.0',

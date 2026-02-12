@@ -395,7 +395,7 @@ pub struct Deposit<'info> {
     #[account(mut)]
     pub depositor: Signer<'info>,
 
-    /// The Silkyway account receiving the deposit
+    /// The SilkyWay account receiving the deposit
     #[account(
         seeds = [ACCOUNT_SEED, silkyway_account.owner.as_ref()],
         bump = silkyway_account.bump,
@@ -528,7 +528,7 @@ pub struct TransferFromAccount<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// The Silkyway account to transfer from
+    /// The SilkyWay account to transfer from
     #[account(
         seeds = [ACCOUNT_SEED, silkyway_account.owner.as_ref()],
         bump = silkyway_account.bump,

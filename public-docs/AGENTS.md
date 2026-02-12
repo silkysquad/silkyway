@@ -2,7 +2,7 @@
 
 ## About this project
 
-- This is the public documentation for **Silkyway** — the financial operating system for autonomous agents on Solana
+- This is the public documentation for **SilkyWay** — the financial operating system for autonomous agents on Solana
 - Built on [Mintlify](https://mintlify.com)
 - Pages are MDX files with YAML frontmatter
 - Configuration lives in `docs.json`, custom styling in `custom.css`

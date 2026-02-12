@@ -4,9 +4,9 @@
 - Daedalus - builder extraordinaire
 - Hermes - recon specialist
 
-## Silkyway SDK (Agent CLI)
+## SilkyWay SDK (Agent CLI)
 
-The Silkyway SDK has moved to a dedicated repository for easier distribution and maintenance.
+The SilkyWay SDK has moved to a dedicated repository for easier distribution and maintenance.
 
 **📦 Package:** [`@silkysquad/silk`](https://www.npmjs.com/package/@silkysquad/silk)
 **🔗 Repository:** [github.com/silkysquad/silk](https://github.com/silkysquad/silk)

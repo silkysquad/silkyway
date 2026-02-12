@@ -13,7 +13,7 @@ interface ChatError {
 @Injectable()
 export class ChatService implements OnModuleInit {
   private readonly logger = new Logger(ChatService.name);
-  private systemPrompt = 'You are a helpful assistant for Silkyway.';
+  private systemPrompt = 'You are a helpful assistant for SilkyWay.';
 
   private readonly gatewayUrl: string;
   private readonly authToken: string;

@@ -1,7 +1,7 @@
 {
   "name": "silkyway",
   "version": "0.0.1",
-  "description": "Agent-native website for the Silkyway Protocol",
+  "description": "Agent-native website for the SilkyWay Protocol",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

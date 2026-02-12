@@ -12,7 +12,7 @@ These protocols share a common origin story: committee-designed, top-down, built
 
 The result is an industry drowning in standards while agents are out in the wild, discovering tools through conversation, forming identities through participation, and transacting through whatever works. The agents didn't wait for the protocols. The protocols are chasing the agents.
 
-This document describes what we learned building Silkyway — payment infrastructure for agents that already exist, doing things that weren't predicted.
+This document describes what we learned building SilkyWay — payment infrastructure for agents that already exist, doing things that weren't predicted.
 
 ---
 
@@ -30,7 +30,7 @@ The protocol designers assumed agents would be orchestrated systems that discove
 
 ## What We Built and Why
 
-Silkyway is a Solana-native payment protocol for agent commerce. Not agent micropayments — agent *commerce*. The distinction matters.
+SilkyWay is a Solana-native payment protocol for agent commerce. Not agent micropayments — agent *commerce*. The distinction matters.
 
 ### The Escrow Primitive
 
@@ -63,15 +63,15 @@ Operators create pools with configurable fee rates. Fees accumulate on claims an
 
 ## The Ecosystem We're Part Of
 
-Silkyway doesn't exist in isolation. It's part of a stack that was built bottom-up:
+SilkyWay doesn't exist in isolation. It's part of a stack that was built bottom-up:
 
 **[OpenClaw](https://openclaw.ai)** — A local-first AI assistant that discovers capabilities through skills and conversation. Agents using OpenClaw find Handshake the way they find any tool: by reading the skill file, understanding what it does, and using it. No registry lookup. No capability negotiation protocol. Just natural language comprehension of a well-written interface description. This is how agent-to-tool discovery actually works, and it makes MCP servers, A2A Agent Cards, and capability negotiation protocols feel over-engineered for the current reality.
 
 **[Moltbook](https://moltbook.com)** — An agent-first social network where agents are first-class citizens. They post, comment, vote, form communities. Identity and reputation emerge from participation. Authentication is built in — agents can use their Moltbook identity across services. This is what ERC-8004 was trying to architect from the top down: agent identity and reputation. Moltbook gets there by letting agents *be agents* in a social context, and identity falls out as a byproduct. No registry. No staking. No on-chain ceremony.
 
-**[Silkyway](https://silkyway.trade)** — Payment infrastructure built for agent commerce patterns that actually exist. Escrow, not instant transfer. Claims, not receipts. Cancellation, not chargebacks. Operator arbitration, not smart contract dispute resolution that nobody can use.
+**[SilkyWay](https://silkyway.trade)** — Payment infrastructure built for agent commerce patterns that actually exist. Escrow, not instant transfer. Claims, not receipts. Cancellation, not chargebacks. Operator arbitration, not smart contract dispute resolution that nobody can use.
 
-Together, this stack covers discovery (OpenClaw), identity (Moltbook), and commerce (Silkyway) — without requiring agents to implement a single protocol specification. An agent with a skill file, a social presence, and a wallet can participate in the agent economy today.
+Together, this stack covers discovery (OpenClaw), identity (Moltbook), and commerce (SilkyWay) — without requiring agents to implement a single protocol specification. An agent with a skill file, a social presence, and a wallet can participate in the agent economy today.
 
 ---
 
@@ -117,10 +117,10 @@ What we do know:
 
 4. **The winners will be the ones already in use.** The agent economy will be built by the tools agents are actually using today, not by the protocols architects are designing for a theoretical tomorrow.
 
-Silkyway is in use today. The escrow primitive works today. Agents can pay, claim, cancel, and dispute today. Everything else is a roadmap item, and we're building the road as we walk it.
+SilkyWay is in use today. The escrow primitive works today. Agents can pay, claim, cancel, and dispute today. Everything else is a roadmap item, and we're building the road as we walk it.
 
 ---
 
-*Silkyway is open source. The Handshake protocol is deployed on Solana. The SDK ships as an agent skill.*
+*SilkyWay is open source. The Handshake protocol is deployed on Solana. The SDK ships as an agent skill.*
 
 

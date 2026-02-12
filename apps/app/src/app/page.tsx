@@ -53,7 +53,7 @@ export default function HomePage() {
       <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-center px-8" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
         <div className="animate-fade-up text-center">
           <h1 className="font-display text-4xl font-black uppercase tracking-wide bg-gradient-to-br from-[#fef3c7] via-solar-gold via-40% to-solar-orange bg-clip-text text-transparent">
-            Silkyway
+            SilkyWay
           </h1>
           <p className="mt-3 max-w-md text-[0.9rem] leading-relaxed text-star-white/50">
             Let your AI agents make payments on Solana — without handing over your keys.

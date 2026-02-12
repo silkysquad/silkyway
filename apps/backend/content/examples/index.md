@@ -1,6 +1,6 @@
 # Examples
 
-> Code examples for common Silkyway Protocol workflows.
+> Code examples for common SilkyWay Protocol workflows.
 
 ## Contents
 

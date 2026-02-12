@@ -1,5 +1,5 @@
 ---
-title: "Welcome to Silkyway"
+title: "Welcome to SilkyWay"
 description: "The financial operating system for autonomous agents"
 icon: "hand-wave"
 ---
@@ -16,7 +16,7 @@ Every agent wallet solution today gives the agent a raw keypair. Full control. N
 
 **Agents don't need wallets. They need accounts.**
 
-A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enforces policies, and enables programmable financial workflows — all without trusting the agent, the human, or any third party.
+A SilkyWay account is an on-chain program (PDA on Solana) that holds funds, enforces policies, and enables programmable financial workflows — all without trusting the agent, the human, or any third party.
 
 ## Core Principles
 
@@ -28,7 +28,7 @@ A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enfo
     The human (owner) sets policies and maintains full control. The agent (operator) runs in "user space" within granted permissions. The Solana program is the kernel.
   </Card>
   <Card title="Yield by Default" icon="chart-line">
-    Every stablecoin in a Silkyway account earns yield automatically. Idle capital is working capital. Agents can self-sustain from returns alone.
+    Every stablecoin in a SilkyWay account earns yield automatically. Idle capital is working capital. Agents can self-sustain from returns alone.
   </Card>
   <Card title="Programmable Accounts" icon="gear">
     Accounts support multiple operators, each with independent policies. Subscriptions, payroll, revenue splits — the account handles the financial workflow.
@@ -37,11 +37,11 @@ A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enfo
 
 ## The Account Model
 
-A Silkyway account is not a keypair. It's a programmable, policy-controlled financial primitive:
+A SilkyWay account is not a keypair. It's a programmable, policy-controlled financial primitive:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  Silkyway Account (on-chain PDA)                │
+│  SilkyWay Account (on-chain PDA)                │
 │                                                 │
 │  Owner (human):  full control                   │
 │  Operators (up to 3, each with own policy):     │
@@ -76,16 +76,16 @@ Each operator slot has independent `per_tx_limit` and `daily_limit`. The program
 | Human-in-the-loop | High | None | N/A |
 | Custodial API | Trust-based | Full | No |
 | Rate limits in agent code | Bypassable | Full | No |
-| **Silkyway account** | **On-chain enforced** | **Full** | **Yes** |
+| **SilkyWay account** | **On-chain enforced** | **Full** | **Yes** |
 
 <Info>
-  Silkyway reframes agent financial safety as an **infrastructure problem**, not an AI alignment problem. You don't need to make the agent smarter or more careful. You make the account's policies physically unbreakable at the Solana program level.
+  SilkyWay reframes agent financial safety as an **infrastructure problem**, not an AI alignment problem. You don't need to make the agent smarter or more careful. You make the account's policies physically unbreakable at the Solana program level.
 </Info>
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Why Silkyway?" icon="lightbulb" href="/guides/why-silkyway">
+  <Card title="Why SilkyWay?" icon="lightbulb" href="/guides/why-silkyway">
     Dive deeper into the value proposition and what makes this approach unique.
   </Card>
   <Card title="How It Works" icon="diagram-project" href="/guides/how-it-works">

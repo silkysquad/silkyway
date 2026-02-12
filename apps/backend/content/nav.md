@@ -1,6 +1,6 @@
 # Navigation
 
-> Full site map for Silkyway — programmable USDC escrow on Solana.
+> Full site map for SilkyWay — programmable USDC escrow on Solana.
 
 ## Entry Points
 - [/](../index.md) — Project overview and getting started

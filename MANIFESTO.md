@@ -1,4 +1,4 @@
-# Silkyway Manifesto: The Financial OS for Autonomous Agents
+# SilkyWay Manifesto: The Financial OS for Autonomous Agents
 
 ## The Problem
 
@@ -14,7 +14,7 @@ Every agent wallet solution today gives the agent a raw keypair. Full control. N
 
 An account is not a keypair. It's a programmable, policy-controlled, yield-bearing, multi-party financial primitive. It's the difference between handing someone cash and opening them a bank account with controls, features, and structure.
 
-A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enforces policies, earns yield, and enables programmable financial workflows — all without trusting the agent, the human, or any third party.
+A SilkyWay account is an on-chain program (PDA on Solana) that holds funds, enforces policies, earns yield, and enables programmable financial workflows — all without trusting the agent, the human, or any third party.
 
 ---
 
@@ -24,7 +24,7 @@ A Silkyway account is an on-chain program (PDA on Solana) that holds funds, enfo
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Silkyway Account (on-chain PDA)                        │
+│  SilkyWay Account (on-chain PDA)                        │
 │                                                         │
 │  Token Balances (up to 4 tokens, any SPL):              │
 │  ├── USDC:  800 (yield-bearing)                         │
@@ -124,7 +124,7 @@ Implications:
 
 ### Money Never Sleeps
 
-Every stablecoin in a Silkyway account earns yield by default. Not opt-in. Not a feature to activate. The default state of money is: working.
+Every stablecoin in a SilkyWay account earns yield by default. Not opt-in. Not a feature to activate. The default state of money is: working.
 
 This is structurally correct because:
 - Agents are 24/7 — their money should be too
@@ -134,10 +134,10 @@ This is structurally correct because:
 
 ### Yield-Bearing Escrow
 
-When you escrow funds through Silkyway, the escrowed capital continues earning yield.
+When you escrow funds through SilkyWay, the escrowed capital continues earning yield.
 
 Normal escrow: 100 stablecoins locked, dead capital, opportunity cost.
-Silkyway escrow: 100 stablecoins locked, earning 5.2% APY, zero opportunity cost.
+SilkyWay escrow: 100 stablecoins locked, earning 5.2% APY, zero opportunity cost.
 
 **Escrow stops being a cost and becomes a feature.** You want money in escrow because it's still productive. This flips the psychology of escrow entirely.
 
@@ -314,7 +314,7 @@ Trust is derived from the account, not from the agent's claims about itself. **T
 
 ## The Operating System Metaphor
 
-A Silkyway account is to agent money what an OS is to hardware:
+A SilkyWay account is to agent money what an OS is to hardware:
 
 | OS Concept | Account Equivalent |
 |------------|-------------------|
@@ -354,7 +354,7 @@ Agents form organizations with shared accounts, governance policies, and voting 
 Two agents that transact frequently open a payment channel (account-level feature). High-frequency micro-payments settle in batches. Reduces on-chain costs. Enables real-time agent-to-agent commerce at scale. Like Lightning Network but for agent accounts.
 
 ### Cross-Protocol Agent Identity
-The Silkyway account becomes the agent's identity across Solana. Other protocols can check: "Does this agent have a Silkyway account with at least $X balance and Y-day history?" Composable identity primitive. The account is the agent's passport.
+The SilkyWay account becomes the agent's identity across Solana. Other protocols can check: "Does this agent have a SilkyWay account with at least $X balance and Y-day history?" Composable identity primitive. The account is the agent's passport.
 
 ### Programmable Tax/Compliance
 Account policies can enforce compliance rules:
@@ -376,7 +376,7 @@ When an agent is deprecated, its account can be "inherited" by a successor agent
 
 **Today:** Agents get wallets. Raw keys. No structure. No safety. No yield. No identity.
 
-**Silkyway:** Agents get accounts. On-chain policy enforcement. Yield by default. Programmable workflows. Verifiable financial identity. The infrastructure for an autonomous economy.
+**SilkyWay:** Agents get accounts. On-chain policy enforcement. Yield by default. Programmable workflows. Verifiable financial identity. The infrastructure for an autonomous economy.
 
 We're not building a payment tool. We're building the financial layer that makes autonomous agents economically viable:
 
@@ -388,7 +388,7 @@ We're not building a payment tool. We're building the financial layer that makes
 
 **The endgame:** A world where agents are first-class economic participants. They earn, spend, save, invest, lend, borrow, insure, and collaborate — all through programmable accounts that are safe, productive, and verifiable.
 
-Silkyway is the bank for machines.
+SilkyWay is the bank for machines.
 
 ---
 
@@ -507,7 +507,7 @@ Your agent has a bank account. Not a wallet.
 
 **It takes 2-3 minutes.** Not 10. Not 30. A judge's agent can do this entire flow and report back in under 3 minutes. That's critical — judges are evaluating dozens of projects.
 
-**It answers the question nobody else answers:** "How do you give an AI money safely?" Every other payments project in this hackathon gives agents a wallet and hopes for the best. Silkyway gives them a policy-controlled account where the chain enforces the rules. That's a fundamentally different answer.
+**It answers the question nobody else answers:** "How do you give an AI money safely?" Every other payments project in this hackathon gives agents a wallet and hopes for the best. SilkyWay gives them a policy-controlled account where the chain enforces the rules. That's a fundamentally different answer.
 
 ### The Single Sentence the Judge Tells Other Judges
 
@@ -562,7 +562,7 @@ Stored at: ~/.config/silk/config.json
 The skill instructs: "Have your human set up your account."
 
 ```
-Your wallet is ready. To create a Silkyway account, have your human visit:
+Your wallet is ready. To create a SilkyWay account, have your human visit:
 https://app.silkyway.ai/account/setup?agent=Ax7kQ9bR3mFVDg2Thh3AG6sFRPqNrDJ4
 
 They'll connect their wallet, set your spending limits, and fund your account.
@@ -574,7 +574,7 @@ Once done, run: silk account sync
 **Step 4: Human visits `app.silkyway.ai/account/setup?agent=Ax7kQ9...`**
 
 Clean page:
-- "Set up a Silkyway account for your agent"
+- "Set up a SilkyWay account for your agent"
 - Agent address pre-filled from URL
 - "Connect Wallet" button (Phantom, Solflare, etc.)
 
@@ -688,7 +688,7 @@ Note: the agent still needs SOL for transaction fees. On mainnet the account cre
 
 ### 2. Does `silk pay` go through escrow or direct transfer?
 
-Currently ALL Silkyway payments are escrow. That means when the agent pays the human $3, it goes into escrow and the human has to claim. For the demo, this is awkward — the human would need to go to the web page and click "Claim" to receive the funds.
+Currently ALL SilkyWay payments are escrow. That means when the agent pays the human $3, it goes into escrow and the human has to claim. For the demo, this is awkward — the human would need to go to the web page and click "Claim" to receive the funds.
 
 Options:
 - **Keep escrow, add claim UI to web page**: The setup page doubles as a dashboard where the human can see and claim incoming escrow payments. More work but stays true to the protocol.
@@ -728,7 +728,7 @@ Each operator has independent per_tx_limit and daily spend tracking. The program
 **Account structure (PDA):**
 ```rust
 #[account]
-pub struct SilkywayAccount {
+pub struct SilkyWayAccount {
     pub owner: Pubkey,                  // 32 - human, full control
     pub operator_count: u8,             // 1 - active operators (0-3)
     pub operators: [OperatorSlot; 3],   // 3 × 64 = 192

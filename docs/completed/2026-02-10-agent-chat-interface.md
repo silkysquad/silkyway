@@ -47,7 +47,7 @@ git commit -m "chore: add @nestjs/axios for chat module HTTP client"
 
 Create `apps/backend/src/chat/prompts/system-prompt.txt`:
 ```
-You are a helpful customer support assistant for Silkyway, an agent payments protocol on Solana. You help AI agents understand how to use the Silkyway SDK to send payments, check balances, manage accounts, and more. Be concise and practical.
+You are a helpful customer support assistant for SilkyWay, an agent payments protocol on Solana. You help AI agents understand how to use the SilkyWay SDK to send payments, check balances, manage accounts, and more. Be concise and practical.
 ```
 
 **Step 2: Write the failing test**
@@ -226,7 +226,7 @@ interface ChatError {
 @Injectable()
 export class ChatService implements OnModuleInit {
   private readonly logger = new Logger(ChatService.name);
-  private systemPrompt = 'You are a helpful assistant for Silkyway.';
+  private systemPrompt = 'You are a helpful assistant for SilkyWay.';
 
   private readonly gatewayUrl: string;
   private readonly authToken: string;
@@ -745,7 +745,7 @@ Add the command registration before `program.parse()`:
 program
   .command('chat')
   .argument('<message>', 'Message to send to support')
-  .description('Chat with Silkyway support agent')
+  .description('Chat with SilkyWay support agent')
   .action(wrapCommand(chat));
 ```
 

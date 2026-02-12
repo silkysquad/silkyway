@@ -49,7 +49,7 @@ Use a `step` state variable: `'connect' | 'configure' | 'fund' | 'done'`
 ### Step 1: Connect Wallet (`step === 'connect'`)
 
 - Read `agent` param from `useSearchParams()`. If missing, show error: "Missing agent address in URL."
-- Show: "Set up a Silkyway account for your agent"
+- Show: "Set up a SilkyWay account for your agent"
 - Display agent address (truncated)
 - `WalletMultiButton` component (already available via wallet adapter)
 - When wallet connects (detected via `useConnectedWallet` hook), auto-advance to step 2

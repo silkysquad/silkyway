@@ -1,6 +1,6 @@
 # Architecture
 
-Silkyway is a protocol for programmable payments on Solana. It consists of three components: an on-chain escrow program (**Handshake**), a backend API (**Site**), and a client SDK+CLI (**SDK**).
+SilkyWay is a protocol for programmable payments on Solana. It consists of three components: an on-chain escrow program (**Handshake**), a backend API (**Site**), and a client SDK+CLI (**SDK**).
 
 ## Handshake — On-Chain Program
 

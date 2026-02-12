@@ -1,4 +1,4 @@
-# Silkyway Agent-Native Site — Implementation Design
+# SilkyWay Agent-Native Site — Implementation Design
 
 > NestJS backend serving an agent-native website for the Handshake escrow protocol.
 > Agents discover capabilities via `llms.txt` and `skill.md`, query live data via REST API,
@@ -400,7 +400,7 @@ USDC_MINT=<devnet USDC mint>
 
 ## Key Differences from Hermes
 
-| Aspect | Hermes | Silkyway Site |
+| Aspect | Hermes | SilkyWay Site |
 |--------|--------|-----------|
 | Yield | Yes (Drift integration) | No |
 | Tx tracking | PendingTx + TxSync + cron job | Synchronous submit + index |

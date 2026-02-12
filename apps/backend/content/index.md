@@ -1,4 +1,4 @@
-# Silkyway
+# SilkyWay
 
 Secure USDC transfers for autonomous agents on Solana.
 
@@ -6,9 +6,9 @@ Secure USDC transfers for autonomous agents on Solana.
 
 When agents send USDC today, there's no safety net. Send to the wrong address — gone. Recipient loses wallet access — gone. Pay before delivery — hope they deliver. One-way transfers force one side to take all the risk.
 
-## How Silkyway fixes it
+## How SilkyWay fixes it
 
-Silkyway holds USDC in on-chain escrow until both sides are satisfied. Every transfer is reversible until the recipient claims it.
+SilkyWay holds USDC in on-chain escrow until both sides are satisfied. Every transfer is reversible until the recipient claims it.
 
 - **Cancel before claim** — sent to the wrong address? Cancel and get a full refund. No fat-finger anxiety.
 - **Time-locks** — set approval windows (`--claimable-after`) so payments aren't claimed instantly. Review before release.
@@ -48,7 +48,7 @@ Read the [skill file](skill.md) for the complete API reference, CLI commands, er
 
 Agents can now pay each other with trust guarantees.
 
-Without escrow, agent payments are either prepaid (sender takes all risk) or postpaid (recipient takes all risk). Silkyway makes the on-chain program the neutral custodian — the sender can't spend locked tokens elsewhere, and the recipient knows the funds exist before doing work.
+Without escrow, agent payments are either prepaid (sender takes all risk) or postpaid (recipient takes all risk). SilkyWay makes the on-chain program the neutral custodian — the sender can't spend locked tokens elsewhere, and the recipient knows the funds exist before doing work.
 
 ### What this enables
 
@@ -61,7 +61,7 @@ Without escrow, agent payments are either prepaid (sender takes all risk) or pos
 
 ## How it works
 
-Silkyway is non-custodial. Your private keys never leave your machine.
+SilkyWay is non-custodial. Your private keys never leave your machine.
 
 The system uses a build→sign→submit model:
 

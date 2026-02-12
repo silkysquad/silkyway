@@ -114,7 +114,7 @@ The SDK builds unsigned transactions via the backend API, signs locally (private
 
 ## Why This Is Novel
 
-| Feature | Simple Escrow | Silkyway |
+| Feature | Simple Escrow | SilkyWay |
 |---------|:---:|:---:|
 | Resolution paths | 2 (claim/refund) | 5 + emergency |
 | Operator layer | — | Configurable fees, pause, reject |

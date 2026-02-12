@@ -1,6 +1,6 @@
 # Examples
 
-> Real CLI commands for common Silkyway patterns. All examples use the `silk` CLI on devnet.
+> Real CLI commands for common SilkyWay patterns. All examples use the `silk` CLI on devnet.
 
 <!-- last-updated: 2026-02-08 -->
 <!-- relates-to: skill.md -->

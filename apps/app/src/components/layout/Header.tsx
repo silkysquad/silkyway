@@ -58,7 +58,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Link href={isConnected ? '/account' : '/'} className="group flex items-center gap-2">
             <span className="font-display text-lg font-black uppercase tracking-wide bg-gradient-to-r from-solar-gold via-solar-orange to-nebula-purple bg-clip-text text-transparent">
-              Silkyway
+              SilkyWay
             </span>
           </Link>
 

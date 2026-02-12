@@ -60,7 +60,7 @@ function pageShell(title: string, body: string, cluster: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} — Silkyway</title>
+  <title>${title} — SilkyWay</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -126,7 +126,7 @@ function pageShell(title: string, body: string, cluster: string): string {
     ${body}
     <div class="footer">
       <a class="program-link" href="${explorerAddr(PROGRAM_ID, cluster)}" target="_blank" rel="noopener">${PROGRAM_ID}</a>
-      <br>Silkyway &middot; Programmable USDC Escrow on Solana ${clusterDisplayName(cluster)}
+      <br>SilkyWay &middot; Programmable USDC Escrow on Solana ${clusterDisplayName(cluster)}
     </div>
   </div>
 </body>

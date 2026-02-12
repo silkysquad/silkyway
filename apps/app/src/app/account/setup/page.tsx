@@ -229,7 +229,7 @@ function AccountSetupContent() {
           Account Setup
         </h1>
         <p className="mt-1 text-[0.85rem] italic text-star-white/40">
-          Set up a Silkyway account for your agent.
+          Set up a SilkyWay account for your agent.
         </p>
       </div>
 

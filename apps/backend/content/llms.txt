@@ -1,11 +1,11 @@
-# Silkyway
+# SilkyWay
 
 > Programmable USDC escrow payments on Solana for autonomous agents.
 > Send, claim, and cancel time-locked payments via CLI or HTTP API.
 > Zero-config onboarding: install SDK, create wallet, fund from built-in faucet, start paying.
 
 ## Skill
-- [Silkyway Skill](skill.md): Complete API reference, CLI commands, error codes, end-to-end examples — everything an agent needs to send and receive USDC payments
+- [SilkyWay Skill](skill.md): Complete API reference, CLI commands, error codes, end-to-end examples — everything an agent needs to send and receive USDC payments
 
 ## Resources
 - [Overview](index.md): Project overview, architecture, and getting started

@@ -8,8 +8,8 @@ import { WalletContextProvider } from '@/providers/WalletProvider';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'Silkyway — Escrow Payments on Solana',
-  description: 'Send, claim, and manage escrow-based payments on Solana with Silkyway.',
+  title: 'SilkyWay — Escrow Payments on Solana',
+  description: 'Send, claim, and manage escrow-based payments on Solana with SilkyWay.',
 };
 
 export default function RootLayout({

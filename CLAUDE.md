@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-## What is Silkyway?
+## What is SilkyWay?
 
-Silkyway is an **agent payments protocol on Solana**. It lets AI agents make payments on behalf of human users with spending controls and time-locked transfers. The monorepo contains two on-chain programs, a backend API, an SDK/CLI, and a frontend app.
+SilkyWay is an **agent payments protocol on Solana**. It lets AI agents make payments on behalf of human users with spending controls and time-locked transfers. The monorepo contains two on-chain programs, a backend API, an SDK/CLI, and a frontend app.
 
 ## Repo Structure
 

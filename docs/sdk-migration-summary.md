@@ -5,7 +5,7 @@
 
 ## What We Did
 
-Successfully migrated the Silkyway SDK from the monorepo to a dedicated repository and published to npm + ClawHub.
+Successfully migrated the SilkyWay SDK from the monorepo to a dedicated repository and published to npm + ClawHub.
 
 ## Final State
 

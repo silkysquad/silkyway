@@ -1,12 +1,12 @@
 # Roadmap
 
-*Where Silkyway fits in the protocol landscape — and where it doesn't.*
+*Where SilkyWay fits in the protocol landscape — and where it doesn't.*
 
 ---
 
 ## Current State
 
-Silkyway is a working Solana-native payment protocol with:
+SilkyWay is a working Solana-native payment protocol with:
 
 - **On-chain program** — Pool-based escrow with claim/cancel/reject/expire/decline semantics
 - **NestJS backend** — Transaction building, submission, and PostgreSQL indexing
@@ -44,12 +44,12 @@ An MCP server for Handshake would expose `pay`, `claim`, `cancel`, `balance`, `l
 
 x402 owns the "pay for API calls" use case. It's well-designed for that specific pattern, has real traction ($600M volume, ~1M tx/week), and is backed by Coinbase and Cloudflare. We're not competing with x402 on micropayments. We're complementing it with escrow.
 
-The integration point is a **Silkyway-native x402 facilitator on Solana**. Instead of routing through Coinbase's CDP facilitator, x402 payments on Solana could settle through Handshake pools — giving pool operators fee revenue and giving x402 clients access to Solana-native settlement.
+The integration point is a **SilkyWay-native x402 facilitator on Solana**. Instead of routing through Coinbase's CDP facilitator, x402 payments on Solana could settle through Handshake pools — giving pool operators fee revenue and giving x402 clients access to Solana-native settlement.
 
-**Why it matters:** Plugs Silkyway into the fastest-growing payment protocol's ecosystem. Any x402 client automatically works with Handshake pools. The positioning is clear: x402 for instant micropayments, Handshake for escrowed commerce. Same platform, both patterns.
+**Why it matters:** Plugs SilkyWay into the fastest-growing payment protocol's ecosystem. Any x402 client automatically works with Handshake pools. The positioning is clear: x402 for instant micropayments, Handshake for escrowed commerce. Same platform, both patterns.
 
 **What we'd build:**
-- `/verify` and `/settle` facilitator endpoints on the Silkyway backend
+- `/verify` and `/settle` facilitator endpoints on the SilkyWay backend
 - x402 `PaymentRequirement` generation for pool-based settlement
 - Support for the `exact` scheme on Solana (SPL token transfers into escrow)
 - Optional: a new x402 scheme (`escrow`?) for deferred settlement
@@ -60,15 +60,15 @@ The integration point is a **Silkyway-native x402 facilitator on Solana**. Inste
 
 **Priority: Low — Near term**
 
-Publishing an Agent Card at `/.well-known/agent-card.json` is trivial and costs nothing. It makes Silkyway discoverable by any A2A-compatible agent or registry.
+Publishing an Agent Card at `/.well-known/agent-card.json` is trivial and costs nothing. It makes SilkyWay discoverable by any A2A-compatible agent or registry.
 
 We don't need to implement the full A2A task lifecycle, JSON-RPC interface, or streaming protocol. Just the discovery document.
 
 **Why it matters:** Free discoverability. A2A is under the Linux Foundation with 150+ organizations. Being findable costs us one static JSON file.
 
 **What we'd build:**
-- Static `agent-card.json` describing Silkyway's payment skills
-- Served at `/.well-known/agent-card.json` on the Silkyway domain
+- Static `agent-card.json` describing SilkyWay's payment skills
+- Served at `/.well-known/agent-card.json` on the SilkyWay domain
 - Lists capabilities, auth requirements, and payment skill descriptions
 
 ---
@@ -132,7 +132,7 @@ No work needed now. We're already aligned with the pattern.
 Ship an MCP server that exposes all SDK operations as tools. Target: any MCP-compatible agent can send/receive/manage escrow payments on Solana.
 
 ### 2. Wire Up Release Conditions
-The on-chain program has `ReleaseConditions` stubbed (time delay, multi-sig, oracle, milestone). Wire these up end-to-end — instruction handlers, backend API, SDK commands. This is Silkyway's moat: conditional escrow payments that no other protocol supports.
+The on-chain program has `ReleaseConditions` stubbed (time delay, multi-sig, oracle, milestone). Wire these up end-to-end — instruction handlers, backend API, SDK commands. This is SilkyWay's moat: conditional escrow payments that no other protocol supports.
 
 ### 3. x402 Facilitator
 Implement `/verify` and `/settle` endpoints. Let x402 clients settle through Handshake pools.
@@ -152,7 +152,7 @@ Extend the escrow model to cover more commerce patterns:
 - **Oracle integration** — external verification of task completion before release
 
 ### Cross-Platform Settlement
-Silkyway pools as the settlement layer for payments originating from any source:
+SilkyWay pools as the settlement layer for payments originating from any source:
 - x402 facilitator (already planned)
 - MCP tool payments
 - A2A payment extensions

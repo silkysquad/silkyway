@@ -130,7 +130,7 @@ Content-Type: application/json
 **System Prompt:**
 - Loaded from `prompts/system-prompt.txt` once at module initialization (`onModuleInit`)
 - Cached in memory for all requests
-- Falls back to `"You are a helpful assistant for Silkyway."` if file is unreadable
+- Falls back to `"You are a helpful assistant for SilkyWay."` if file is unreadable
 
 **HTTP Client:**
 - axios with 30-second timeout

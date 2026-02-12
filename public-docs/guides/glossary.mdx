@@ -1,6 +1,6 @@
 ---
 title: "Glossary"
-description: "Key terms and concepts in the Silkyway protocol"
+description: "Key terms and concepts in the SilkyWay protocol"
 icon: "book"
 ---
 
@@ -8,13 +8,13 @@ icon: "book"
 
 | Term | Definition |
 | ---- | ---------- |
-| **Silkyway Account** | An on-chain program (PDA) that holds funds, enforces spending policies, and supports multiple operators. One account per human owner. |
+| **SilkyWay Account** | An on-chain program (PDA) that holds funds, enforces spending policies, and supports multiple operators. One account per human owner. |
 | **Owner** | The human who created the account. Has full control — can add/remove operators, change policies, withdraw without limits. The "root" key. |
 | **Operator** | A key (typically an agent) with policy-bound permissions on an account. Can spend within limits but cannot change its own policies. Up to 3 per account. |
 | **Operator Slot** | One of 3 policy slots per account. Each slot has its own `per_tx_limit`, `daily_limit`, and spend tracking. |
 | **Per-Transaction Limit** | Maximum amount an operator can spend in a single transaction. Enforced on-chain by the Silkysig program. |
 | **Daily Limit** | Maximum amount an operator can spend per day. Tracked on-chain, resets every 24 hours. |
-| **Account PDA** | Program Derived Address — the on-chain address of a Silkyway account. Derived from `["account", owner_pubkey]`. |
+| **Account PDA** | Program Derived Address — the on-chain address of a SilkyWay account. Derived from `["account", owner_pubkey]`. |
 | **Token Slot** | One of 4 slots per account for holding different SPL tokens. Lazy-initialized on first deposit of each token type. |
 
 ## Payment Concepts
@@ -37,7 +37,7 @@ icon: "book"
 | **PDA** | Program Derived Address — a Solana account address derived deterministically from seeds. Not a keypair. Controlled by the program. |
 | **ATA** | Associated Token Account — a Solana account that holds a specific SPL token for a specific owner. |
 | **SPL Token** | Solana's token standard. USDC, USDT, PYUSD are all SPL tokens. |
-| **Anchor** | The Solana development framework used to build Silkyway's on-chain programs. |
+| **Anchor** | The Solana development framework used to build SilkyWay's on-chain programs. |
 | **Instruction** | A single operation submitted to a Solana program. `create_account`, `deposit`, `transfer_from_account` are all instructions. |
 
 ## Financial Concepts
