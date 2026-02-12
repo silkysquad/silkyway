@@ -26,7 +26,7 @@ export class AccountController {
 
     const accounts = results.map((r) => {
       const operatorPubkey = new PublicKey(pubkey);
-      let operatorSlot: { index: number; perTxLimit: string; dailyLimit: string } | null = null;
+      let operatorSlot: { index: number; perTxLimit: string } | null = null;
 
       for (let i = 0; i < r.account.operatorCount; i++) {
         const slot = r.account.operators[i];
@@ -34,7 +34,6 @@ export class AccountController {
           operatorSlot = {
             index: i,
             perTxLimit: slot.perTxLimit.toString(),
-            dailyLimit: slot.dailyLimit.toString(),
           };
           break;
         }
@@ -70,9 +69,6 @@ export class AccountController {
         index: i,
         pubkey: slot.pubkey.toBase58(),
         perTxLimit: slot.perTxLimit.toString(),
-        dailyLimit: slot.dailyLimit.toString(),
-        dailySpent: slot.dailySpent.toString(),
-        lastReset: slot.lastReset.toString(),
       });
     }
 
@@ -150,12 +146,12 @@ export class AccountController {
   @Post('add-operator')
   @HttpCode(200)
   async addOperator(
-    @Body() body: { owner: string; accountPda: string; operator: string; perTxLimit: number },
+    @Body() body: { owner: string; accountPda: string; operator: string; perTxLimit?: number },
   ) {
     this.validatePubkey(body.owner, 'owner');
     this.validatePubkey(body.accountPda, 'accountPda');
     this.validatePubkey(body.operator, 'operator');
-    if (body.perTxLimit == null || body.perTxLimit < 0) {
+    if (body.perTxLimit != null && body.perTxLimit < 0) {
       throw new BadRequestException({ ok: false, error: 'INVALID_LIMIT', message: 'perTxLimit must be >= 0' });
     }
 

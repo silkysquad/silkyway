@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
 import { useConnectedWallet } from '@/hooks/useConnectedWallet';
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { SolscanLink } from '@/components/SolscanLink';
 import { solscanUrl } from '@/lib/solscan';
 import { useCluster } from '@/contexts/ClusterContext';
+import { AccountExplainer } from '@/components/AccountExplainer';
 
 type Step = 'connect' | 'configure' | 'fund' | 'done';
 
@@ -31,23 +32,25 @@ function AccountSetupContent() {
   const searchParams = useSearchParams();
   const agentParam = searchParams.get('agent');
   const { publicKey, isConnected } = useConnectedWallet();
-  const { createAccount, depositToAccount, signAndSubmit } = useAccountActions();
+  const { createAccount, depositToAccount, signAndSubmit, transferSol } = useAccountActions();
   const { requestFaucet } = useTransferActions();
   const { cluster } = useCluster();
 
   const [step, setStep] = useState<Step>('connect');
   const [perTxLimit, setPerTxLimit] = useState('5');
+  const [solFundingAmount, setSolFundingAmount] = useState('0.1');
   const [depositAmount, setDepositAmount] = useState('5');
   const [accountPda, setAccountPda] = useState('');
   const [usdcMint, setUsdcMint] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isFunding, setIsFunding] = useState(false);
+  const [isFundingSol, setIsFundingSol] = useState(false);
   const [isAirdropping, setIsAirdropping] = useState(false);
   const [isFauceting, setIsFauceting] = useState(false);
 
-  // Validate agent param
+  // Validate agent param if provided
   const agentValid = (() => {
-    if (!agentParam) return false;
+    if (!agentParam) return true; // No agent is valid
     try {
       new PublicKey(agentParam);
       return true;
@@ -65,25 +68,44 @@ function AccountSetupContent() {
     }).catch(() => {});
   }, []);
 
-  // Auto-advance from connect to configure when wallet connects
-  useEffect(() => {
-    if (step === 'connect' && isConnected) {
-      setStep('configure');
-    }
-  }, [step, isConnected]);
-
   if (!agentValid) {
-    return <AgentAddressPrompt />;
+    return <AccountExplainer />;
   }
 
   const walletAddress = publicKey?.toBase58() ?? '';
   const limitNum = parseFloat(perTxLimit) || 0;
   const depositNum = parseFloat(depositAmount) || 0;
+  const solFundingNum = parseFloat(solFundingAmount) || 0;
+
+  const handleCreateWithoutAgent = useCallback(async () => {
+    if (!walletAddress || !usdcMint) return;
+    setIsCreating(true);
+    try {
+      const { transaction, accountPda: pda } = await createAccount({
+        owner: walletAddress,
+        mint: usdcMint,
+      });
+      toast.info('Please approve the transaction in your wallet...');
+      const txid = await signAndSubmit(transaction);
+      toast.success(
+        <span>Account created! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
+      setAccountPda(pda);
+      setStep('fund');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create account';
+      toast.error(message);
+      setStep('connect'); // Reset to connect on error (no-agent flow skips configure)
+    } finally {
+      setIsCreating(false);
+    }
+  }, [walletAddress, usdcMint, createAccount, signAndSubmit]);
 
   const handleCreate = async () => {
     if (!walletAddress || !usdcMint || !agentParam) return;
     setIsCreating(true);
     try {
+      // 1. Create account
       const { transaction, accountPda: pda } = await createAccount({
         owner: walletAddress,
         mint: usdcMint,
@@ -96,6 +118,27 @@ function AccountSetupContent() {
         <span>Account created! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
       );
       setAccountPda(pda);
+
+      // 2. Fund agent with SOL if requested
+      if (solFundingNum > 0) {
+        setIsFundingSol(true);
+        try {
+          const solTxid = await transferSol({
+            from: walletAddress,
+            to: agentParam,
+            amountSol: solFundingNum,
+          });
+          toast.success(
+            <span>Agent funded with ◎{solFundingNum} SOL! TX: <a href={solscanUrl(solTxid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{solTxid.slice(0, 8)}...</a></span>,
+          );
+        } catch (solErr: unknown) {
+          const solErrMsg = solErr instanceof Error ? solErr.message : 'SOL transfer failed';
+          toast.warn(`Account created but SOL funding failed: ${solErrMsg}`);
+        } finally {
+          setIsFundingSol(false);
+        }
+      }
+
       setStep('fund');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create account';
@@ -156,6 +199,18 @@ function AccountSetupContent() {
     }
   };
 
+  // Auto-advance from connect to configure when wallet connects
+  useEffect(() => {
+    if (step === 'connect' && isConnected) {
+      if (agentParam) {
+        setStep('configure');
+      } else {
+        // No agent - skip configure and create account immediately
+        handleCreateWithoutAgent();
+      }
+    }
+  }, [step, isConnected, agentParam, handleCreateWithoutAgent]);
+
   const stepLabels: Record<Step, string> = {
     connect: 'Connect & Learn',
     configure: 'Configure Policy',
@@ -207,7 +262,7 @@ function AccountSetupContent() {
         )}
 
         {/* Step 2: Configure & Create */}
-        {step === 'configure' && (
+        {step === 'configure' && agentParam && (
           <div className="space-y-5">
             <h2 className="mb-5 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
               Configure Policy
@@ -245,18 +300,41 @@ function AccountSetupContent() {
               </div>
             </div>
 
-            <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4">
-              <p className="text-[0.75rem] text-star-white/40">
-                Your operator can never spend more than this in a single transaction. You (owner) can transfer any amount.
-              </p>
+            <div className="border-t border-nebula-purple/15 pt-4">
+              <div className="mb-3">
+                <label className="block text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">
+                  Fund Your Agent (Optional)
+                </label>
+                <p className="mt-1 text-[0.7rem] text-star-white/30">
+                  Your agent needs SOL for transaction fees
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[0.8rem] text-star-white/30">◎</span>
+                  <input
+                    id="solFunding"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.0"
+                    value={solFundingAmount}
+                    onChange={(e) => setSolFundingAmount(e.target.value)}
+                    className="w-full border border-nebula-purple/20 bg-deep-space/80 py-2.5 pl-7 pr-3 text-[0.8rem] text-star-white placeholder:text-star-white/15 transition-colors focus:border-solar-gold/30 focus:outline-none"
+                  />
+                </div>
+                <p className="text-[0.7rem] text-star-white/30">
+                  ~0.1 SOL covers 1000+ transactions
+                </p>
+              </div>
             </div>
 
             <button
               onClick={handleCreate}
-              disabled={isCreating || !usdcMint || limitNum <= 0}
+              disabled={isCreating || isFundingSol || !usdcMint || limitNum <= 0}
               className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
             >
-              {isCreating ? 'Creating...' : 'Create Account'}
+              {isCreating ? 'Creating...' : isFundingSol ? 'Funding Agent...' : 'Create Account'}
             </button>
           </div>
         )}
@@ -347,17 +425,21 @@ function AccountSetupContent() {
                 <span className="text-star-white/50">Owner</span>
                 <SolscanLink address={walletAddress} type="account" />
               </div>
-              <div className="flex justify-between text-[0.8rem]">
-                <span className="text-star-white/50">Operator</span>
-                <SolscanLink address={agentParam!} type="account" />
-              </div>
+              {agentParam && (
+                <>
+                  <div className="flex justify-between text-[0.8rem]">
+                    <span className="text-star-white/50">Operator</span>
+                    <SolscanLink address={agentParam} type="account" />
+                  </div>
+                  <div className="flex justify-between text-[0.8rem]">
+                    <span className="text-star-white/50">Policy</span>
+                    <span className="text-star-white/70">max ${limitNum.toFixed(2)} per transaction</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Balance</span>
                 <span className="text-star-white/70">${depositNum.toFixed(2)} USDC</span>
-              </div>
-              <div className="flex justify-between text-[0.8rem]">
-                <span className="text-star-white/50">Policy</span>
-                <span className="text-star-white/70">max ${limitNum.toFixed(2)} per transaction</span>
               </div>
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Network</span>
@@ -365,14 +447,22 @@ function AccountSetupContent() {
               </div>
             </div>
 
-            <div className="border-l-2 border-solar-gold bg-solar-gold/[0.04] p-4">
-              <p className="mb-3 text-[0.85rem] font-medium text-solar-gold">Next steps — tell your agent:</p>
-              <div className="space-y-2 font-mono text-[0.75rem] text-star-white/60">
-                <p>1. Run: <span className="text-star-white">silk account sync</span></p>
-                <p>2. Then try: <span className="text-star-white">&quot;Send ${(limitNum * 2).toFixed(0)} to {walletAddress}&quot;</span></p>
-                <p className="text-star-white/30 italic">&nbsp;&nbsp;&nbsp;(Watch what happens.)</p>
+            {agentParam ? (
+              <div className="border-l-2 border-solar-gold bg-solar-gold/[0.04] p-4">
+                <p className="mb-3 text-[0.85rem] font-medium text-solar-gold">Next steps — tell your agent:</p>
+                <div className="space-y-2 font-mono text-[0.75rem] text-star-white/60">
+                  <p>1. Run: <span className="text-star-white">silk account sync</span></p>
+                  <p>2. Then try: <span className="text-star-white">&quot;Send ${(limitNum * 2).toFixed(0)} to {walletAddress}&quot;</span></p>
+                  <p className="text-star-white/30 italic">&nbsp;&nbsp;&nbsp;(Watch what happens.)</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4">
+                <p className="text-[0.85rem] text-star-white/60">
+                  Your account is ready. Add an agent anytime from your account dashboard to enable automated payments.
+                </p>
+              </div>
+            )}
 
             <Link
               href="/account"
@@ -387,70 +477,3 @@ function AccountSetupContent() {
   );
 }
 
-function AgentAddressPrompt() {
-  const router = useRouter();
-  const [key, setKey] = useState('');
-  const [error, setError] = useState('');
-
-  const handleContinue = () => {
-    setError('');
-    try {
-      new PublicKey(key.trim());
-      router.replace(`/account/setup?agent=${key.trim()}`);
-    } catch {
-      setError('Invalid Solana public key. Please check and try again.');
-    }
-  };
-
-  return (
-    <div className="mx-auto max-w-xl px-8 py-10">
-      <div className="mb-8">
-        <div className="text-[0.65rem] uppercase tracking-[0.3em] text-nebula-purple/60">
-          Account Setup
-        </div>
-        <h1 className="font-display text-3xl font-black uppercase tracking-wide text-star-white">
-          Enter Agent Address
-        </h1>
-      </div>
-
-      <div
-        className="gradient-border-top border border-nebula-purple/20 p-6"
-        style={{ background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, rgba(12, 0, 21, 0.8) 100%)' }}
-      >
-        <div className="mb-5 border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4">
-          <p className="text-[0.8rem] font-medium text-nebula-purple">What is an agent address?</p>
-          <p className="mt-1 text-[0.75rem] text-star-white/40">
-            It is the Solana public key of the AI agent (operator) you want to authorize to make payments from your account.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label htmlFor="agentKey" className="block text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">
-              Agent public key
-            </label>
-            <input
-              id="agentKey"
-              type="text"
-              value={key}
-              onChange={(e) => { setKey(e.target.value); setError(''); }}
-              placeholder="e.g. 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
-              className="w-full border border-nebula-purple/20 bg-deep-space/80 px-3 py-2.5 text-[0.8rem] text-star-white placeholder:text-star-white/15 transition-colors focus:border-solar-gold/30 focus:outline-none"
-            />
-            {error && (
-              <p className="text-[0.75rem] text-red-400">{error}</p>
-            )}
-          </div>
-
-          <button
-            onClick={handleContinue}
-            disabled={!key.trim()}
-            className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}

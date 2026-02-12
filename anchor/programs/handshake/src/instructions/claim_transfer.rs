@@ -14,7 +14,9 @@ pub fn claim_transfer<'a, 'b, 'c, 'info>(
 
     // Calculate fee
     let fee = pool.calculate_transfer_fee(transfer.amount);
-    let net_amount = transfer.amount.saturating_sub(fee);
+    let net_amount = transfer.amount
+        .checked_sub(fee)
+        .ok_or(HandshakeError::CalculationError)?;
 
     // Transfer net amount to recipient using pool authority
     let pool_seeds = &[POOL_SEED, pool.pool_id.as_ref(), &[pool.bump]];
@@ -104,8 +106,11 @@ pub struct ClaimTransfer<'info> {
     )]
     pub transfer: Box<Account<'info, SecureTransfer>>,
 
-    /// CHECK: Sender receives rent refund on close. Validated via transfer.sender constraint.
-    #[account(mut)]
+    /// CHECK: Sender receives rent refund on close.
+    #[account(
+        mut,
+        constraint = transfer.sender == sender.key() @ HandshakeError::Unauthorized
+    )]
     pub sender: AccountInfo<'info>,
 
     pub token_program: Interface<'info, TokenInterface>,

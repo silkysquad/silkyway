@@ -97,7 +97,7 @@ The backend never sees your private key. It only builds the transaction structur
 
 ## Technical details
 
-- **Program ID:** [`HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`](https://solscan.io/account/HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg?cluster=devnet)
+- **Program ID:** [`HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ`](https://solscan.io/account/HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ?cluster=devnet)
 - **Network:** Solana devnet
 - **Token:** USDC (SPL token, 6 decimals)
 - **Fee model:** Configurable basis points per pool (0-100%), charged only on successful claims

@@ -434,6 +434,7 @@ The backend runs as two PM2 processes from the same build, differentiated by env
 2. **Create env files** (`.env.mainnet` and `.env.devnet`) with full config including database credentials, RPC URLs, USDC mints, OpenClaw config, etc.
 
 3. **Update ecosystem.config.js** with your actual values (or use `env_file`):
+4. 
    ```js
    {
      name: 'silkyway-mainnet',

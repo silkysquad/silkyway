@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 use crate::{state::*, errors::*, constants::*};
 
-pub fn add_operator(ctx: Context<AddOperator>, operator: Pubkey, per_tx_limit: u64) -> Result<()> {
+pub fn add_operator(ctx: Context<AddOperator>, operator: Pubkey, per_tx_limit: Option<u64>) -> Result<()> {
+    let limit = per_tx_limit.unwrap_or(u64::MAX);
+
     let account = &mut ctx.accounts.silk_account;
     let count = account.operator_count as usize;
 
@@ -10,10 +12,8 @@ pub fn add_operator(ctx: Context<AddOperator>, operator: Pubkey, per_tx_limit: u
 
     account.operators[count] = OperatorSlot {
         pubkey: operator,
-        per_tx_limit,
-        daily_limit: 0,
-        daily_spent: 0,
-        last_reset: 0,
+        per_tx_limit: limit,
+        _reserved: [0u8; 24],
     };
     account.operator_count += 1;
 
@@ -21,7 +21,7 @@ pub fn add_operator(ctx: Context<AddOperator>, operator: Pubkey, per_tx_limit: u
         account: account.key(),
         owner: account.owner,
         operator,
-        per_tx_limit,
+        per_tx_limit: limit,
         slot_index: count as u8,
     });
 

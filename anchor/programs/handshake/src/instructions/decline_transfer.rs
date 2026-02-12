@@ -103,8 +103,11 @@ pub struct DeclineTransfer<'info> {
     )]
     pub transfer: Box<Account<'info, SecureTransfer>>,
 
-    /// CHECK: Sender receives rent refund on close. Validated via transfer.sender constraint.
-    #[account(mut)]
+    /// CHECK: Sender receives rent refund on close.
+    #[account(
+        mut,
+        constraint = transfer.sender == sender.key() @ HandshakeError::Unauthorized
+    )]
     pub sender: AccountInfo<'info>,
 
     pub token_program: Interface<'info, TokenInterface>,

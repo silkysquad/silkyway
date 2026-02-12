@@ -9,12 +9,15 @@ pub fn expire_transfer<'a, 'b, 'c, 'info>(
     let pool = &mut ctx.accounts.pool;
     let transfer = &mut ctx.accounts.transfer;
 
+    // Validate transfer is active before doing any work
+    transfer.validate_active()?;
+
     // Validate transfer is expired
     require!(
         transfer.claimable_until > 0,
         HandshakeError::InvalidTimeWindow
     );
-    
+
     let is_expired = transfer.is_expired()?;
     require!(is_expired, HandshakeError::CannotClaim);
 
@@ -101,8 +104,11 @@ pub struct ExpireTransfer<'info> {
     )]
     pub transfer: Box<Account<'info, SecureTransfer>>,
 
-    /// CHECK: Sender receives rent refund on close. Validated via transfer.sender constraint.
-    #[account(mut)]
+    /// CHECK: Sender receives rent refund on close.
+    #[account(
+        mut,
+        constraint = transfer.sender == sender.key() @ HandshakeError::Unauthorized
+    )]
     pub sender: AccountInfo<'info>,
 
     pub token_program: Interface<'info, TokenInterface>,

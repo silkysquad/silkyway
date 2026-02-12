@@ -10,12 +10,11 @@ import {
 
 export const ACCOUNT_SEED = 'account';
 
+const DRIFT_PROGRAM = new PublicKey('dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH');
+
 export interface OperatorSlotData {
   pubkey: PublicKey;
   perTxLimit: BN;
-  dailyLimit: BN;
-  dailySpent: BN;
-  lastReset: BN;
 }
 
 export interface SilkAccountData {
@@ -26,6 +25,9 @@ export interface SilkAccountData {
   isPaused: boolean;
   operatorCount: number;
   operators: OperatorSlotData[];
+  driftUser: PublicKey | null;
+  driftMarketIndex: number | null;
+  principalBalance: BN;
 }
 
 export class SilkysigClient {
@@ -60,7 +62,7 @@ export class SilkysigClient {
 
     // Operator pubkey offsets in account data:
     // Discriminator: 8, version: 1, bump: 1, owner: 32, mint: 32, is_paused: 1, operator_count: 1 = 76 bytes
-    // Each OperatorSlot: pubkey(32) + per_tx_limit(8) + daily_limit(8) + daily_spent(8) + last_reset(8) = 64 bytes
+    // Each OperatorSlot: pubkey(32) + per_tx_limit(8) + _reserved(24) = 64 bytes
     const baseOffset = 76;
     const slotSize = 64;
     const offsets = [baseOffset, baseOffset + slotSize, baseOffset + slotSize * 2];
@@ -124,8 +126,8 @@ export class SilkysigClient {
     const [silkAccountPda] = this.findAccountPda(owner);
     const accountTokenAccount = getAssociatedTokenAddressSync(mint, silkAccountPda, true);
 
-    const ix = await (this.program.methods as any)
-      .createAccount(operator ?? null, perTxLimit ?? null)
+    const createIx = await (this.program.methods as any)
+      .createAccount()
       .accounts({
         owner,
         mint,
@@ -141,7 +143,18 @@ export class SilkysigClient {
     const tx = new Transaction();
     tx.recentBlockhash = blockhash;
     tx.feePayer = owner;
-    tx.add(ix);
+    tx.add(createIx);
+
+    if (operator) {
+      const addOpIx = await (this.program.methods as any)
+        .addOperator(operator, perTxLimit ?? null)
+        .accounts({
+          owner,
+          silkAccount: silkAccountPda,
+        })
+        .instruction();
+      tx.add(addOpIx);
+    }
 
     const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
     return { transaction: serialized, accountPda: silkAccountPda.toBase58() };
@@ -159,7 +172,7 @@ export class SilkysigClient {
     const accountTokenAccount = getAssociatedTokenAddressSync(mint, accountPda, true);
     const depositorTokenAccount = getAssociatedTokenAddressSync(mint, depositor, true);
 
-    const ix = await (this.program.methods as any)
+    const builder = (this.program.methods as any)
       .deposit(amount)
       .accounts({
         depositor,
@@ -168,8 +181,15 @@ export class SilkysigClient {
         accountTokenAccount,
         depositorTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .instruction();
+      });
+
+    // If Drift is initialized, add remaining accounts for Drift deposit
+    if (account.driftUser) {
+      const driftAccounts = await this.buildDriftDepositRemainingAccounts(account);
+      builder.remainingAccounts(driftAccounts);
+    }
+
+    const ix = await builder.instruction();
 
     const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
     const tx = new Transaction();
@@ -194,7 +214,7 @@ export class SilkysigClient {
     const accountTokenAccount = getAssociatedTokenAddressSync(mint, accountPda, true);
     const recipientTokenAccount = getAssociatedTokenAddressSync(mint, recipient, true);
 
-    const ix = await (this.program.methods as any)
+    const builder = (this.program.methods as any)
       .transferFromAccount(amount)
       .accounts({
         signer,
@@ -206,8 +226,15 @@ export class SilkysigClient {
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-      })
-      .instruction();
+      });
+
+    // If Drift is initialized, add remaining accounts for Drift withdraw
+    if (account.driftUser) {
+      const driftAccounts = await this.buildDriftWithdrawRemainingAccounts(account, accountPda);
+      builder.remainingAccounts(driftAccounts);
+    }
+
+    const ix = await builder.instruction();
 
     const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
     const tx = new Transaction();
@@ -245,10 +272,10 @@ export class SilkysigClient {
     owner: PublicKey,
     accountPda: PublicKey,
     operator: PublicKey,
-    perTxLimit: BN,
+    perTxLimit?: BN,
   ): Promise<{ transaction: string }> {
     const ix = await (this.program.methods as any)
-      .addOperator(operator, perTxLimit)
+      .addOperator(operator, perTxLimit ?? null)
       .accounts({
         owner,
         silkAccount: accountPda,
@@ -299,7 +326,7 @@ export class SilkysigClient {
     const accountTokenAccount = getAssociatedTokenAddressSync(mint, accountPda, true);
     const ownerTokenAccount = getAssociatedTokenAddressSync(mint, owner, true);
 
-    const ix = await (this.program.methods as any)
+    const builder = (this.program.methods as any)
       .closeAccount()
       .accounts({
         owner,
@@ -310,8 +337,15 @@ export class SilkysigClient {
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-      })
-      .instruction();
+      });
+
+    // If Drift is initialized, add remaining accounts for Drift withdraw
+    if (account.driftUser) {
+      const driftAccounts = await this.buildDriftWithdrawRemainingAccounts(account, accountPda);
+      builder.remainingAccounts(driftAccounts);
+    }
+
+    const ix = await builder.instruction();
 
     const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
     const tx = new Transaction();
@@ -321,5 +355,82 @@ export class SilkysigClient {
 
     const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
     return { transaction: serialized };
+  }
+
+  // ─── Drift Helpers ────────────────────────────────────────────────────────────
+
+  private getDriftStatePDA(): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('drift_state')],
+      DRIFT_PROGRAM,
+    )[0];
+  }
+
+  private getDriftSpotMarketVaultPDA(marketIndex: number): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('spot_market_vault'), new BN(marketIndex).toArrayLike(Buffer, 'le', 2)],
+      DRIFT_PROGRAM,
+    )[0];
+  }
+
+  private getDriftSpotMarketPDA(marketIndex: number): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('spot_market'), new BN(marketIndex).toArrayLike(Buffer, 'le', 2)],
+      DRIFT_PROGRAM,
+    )[0];
+  }
+
+  private getDriftSignerPDA(): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('drift_signer')],
+      DRIFT_PROGRAM,
+    )[0];
+  }
+
+  private async fetchSpotMarketOracle(marketIndex: number): Promise<PublicKey> {
+    const spotMarketPda = this.getDriftSpotMarketPDA(marketIndex);
+    const accountInfo = await this.connection.getAccountInfo(spotMarketPda);
+    if (!accountInfo) throw new Error('DRIFT_SPOT_MARKET_NOT_FOUND');
+    // Oracle pubkey is at offset 40-72 in SpotMarket account data
+    const oracleBytes = accountInfo.data.subarray(40, 72);
+    return new PublicKey(oracleBytes);
+  }
+
+  private async buildDriftDepositRemainingAccounts(
+    account: SilkAccountData,
+  ): Promise<Array<{ pubkey: PublicKey; isSigner: boolean; isWritable: boolean }>> {
+    const marketIndex = account.driftMarketIndex!;
+    const oracle = await this.fetchSpotMarketOracle(marketIndex);
+
+    // Layout: drift_state, drift_user, drift_user_stats, drift_spot_market_vault, drift_program, drift_oracle, drift_spot_market
+    return [
+      { pubkey: this.getDriftStatePDA(), isSigner: false, isWritable: true },
+      { pubkey: account.driftUser!, isSigner: false, isWritable: true },
+      { pubkey: PublicKey.findProgramAddressSync([Buffer.from('user_stats'), account.owner.toBuffer()], DRIFT_PROGRAM)[0], isSigner: false, isWritable: true },
+      { pubkey: this.getDriftSpotMarketVaultPDA(marketIndex), isSigner: false, isWritable: true },
+      { pubkey: DRIFT_PROGRAM, isSigner: false, isWritable: false },
+      { pubkey: oracle, isSigner: false, isWritable: false },
+      { pubkey: this.getDriftSpotMarketPDA(marketIndex), isSigner: false, isWritable: true },
+    ];
+  }
+
+  private async buildDriftWithdrawRemainingAccounts(
+    account: SilkAccountData,
+    accountPda: PublicKey,
+  ): Promise<Array<{ pubkey: PublicKey; isSigner: boolean; isWritable: boolean }>> {
+    const marketIndex = account.driftMarketIndex!;
+    const oracle = await this.fetchSpotMarketOracle(marketIndex);
+
+    // Layout: drift_state, drift_user, drift_user_stats, drift_spot_market_vault, drift_signer, drift_program, drift_oracle, drift_spot_market
+    return [
+      { pubkey: this.getDriftStatePDA(), isSigner: false, isWritable: true },
+      { pubkey: account.driftUser!, isSigner: false, isWritable: true },
+      { pubkey: PublicKey.findProgramAddressSync([Buffer.from('user_stats'), account.owner.toBuffer()], DRIFT_PROGRAM)[0], isSigner: false, isWritable: true },
+      { pubkey: this.getDriftSpotMarketVaultPDA(marketIndex), isSigner: false, isWritable: true },
+      { pubkey: this.getDriftSignerPDA(), isSigner: false, isWritable: false },
+      { pubkey: DRIFT_PROGRAM, isSigner: false, isWritable: false },
+      { pubkey: oracle, isSigner: false, isWritable: false },
+      { pubkey: this.getDriftSpotMarketPDA(marketIndex), isSigner: false, isWritable: true },
+    ];
   }
 }

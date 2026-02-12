@@ -10,7 +10,6 @@ import { resolveRecipient } from '../contacts.js';
 interface OperatorSlot {
   index: number;
   perTxLimit: string;
-  dailyLimit: string;
 }
 
 interface ByOperatorAccount {
@@ -34,9 +33,6 @@ interface AccountDetail {
     index: number;
     pubkey: string;
     perTxLimit: string;
-    dailyLimit: string;
-    dailySpent: string;
-    lastReset: string;
   }>;
 }
 

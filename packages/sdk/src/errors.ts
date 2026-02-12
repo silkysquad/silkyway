@@ -44,13 +44,19 @@ export const ANCHOR_ERROR_MAP: Record<number, { code: string; message: string }>
 export const SILKYSIG_ERROR_MAP: Record<number, { code: string; message: string }> = {
   6000: { code: 'POLICY_UNAUTHORIZED', message: 'Unauthorized: signer is not owner or operator' },
   6001: { code: 'POLICY_EXCEEDS_TX_LIMIT', message: 'Transfer exceeds operator per-transaction limit' },
-  6002: { code: 'POLICY_EXCEEDS_DAILY_LIMIT', message: 'Transfer exceeds operator daily limit' },
-  6003: { code: 'ACCOUNT_PAUSED', message: 'Account is paused' },
-  6004: { code: 'MAX_OPERATORS', message: 'Maximum operators reached' },
-  6005: { code: 'OPERATOR_NOT_FOUND', message: 'Operator not found' },
-  6006: { code: 'OPERATOR_EXISTS', message: 'Operator slot already occupied' },
-  6007: { code: 'INSUFFICIENT_BALANCE', message: 'Insufficient token balance' },
-  6008: { code: 'MATH_OVERFLOW', message: 'Mathematical overflow' },
+  6002: { code: 'ACCOUNT_PAUSED', message: 'Account is paused' },
+  6003: { code: 'MAX_OPERATORS', message: 'Maximum operators reached' },
+  6004: { code: 'OPERATOR_NOT_FOUND', message: 'Operator not found' },
+  6005: { code: 'OPERATOR_EXISTS', message: 'Operator slot already occupied' },
+  6006: { code: 'MATH_OVERFLOW', message: 'Mathematical overflow' },
+  6007: { code: 'AMOUNT_MUST_BE_POSITIVE', message: 'Amount must be positive' },
+  6008: { code: 'DRIFT_USER_ALREADY_INITIALIZED', message: 'Drift user already initialized' },
+  6009: { code: 'DRIFT_DEPOSIT_FAILED', message: 'Drift deposit failed' },
+  6010: { code: 'DRIFT_WITHDRAW_FAILED', message: 'Drift withdrawal failed' },
+  6011: { code: 'INVALID_DRIFT_USER', message: 'Invalid Drift user account' },
+  6012: { code: 'MISSING_DRIFT_ACCOUNTS', message: 'Missing required Drift accounts' },
+  6013: { code: 'INVALID_DRIFT_PROGRAM', message: 'Invalid Drift program ID' },
+  6014: { code: 'DRIFT_DELETE_USER_FAILED', message: 'Failed to delete Drift user' },
 };
 
 export function toSilkysigError(err: unknown): SdkError {

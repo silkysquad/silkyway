@@ -8,9 +8,6 @@ pub enum SilkysigError {
     #[msg("Transfer exceeds operator per-transaction limit")]
     ExceedsPerTxLimit,
 
-    #[msg("Transfer exceeds operator daily limit")]
-    ExceedsDailyLimit,
-
     #[msg("Account is paused")]
     AccountPaused,
 
@@ -23,9 +20,30 @@ pub enum SilkysigError {
     #[msg("Operator slot already occupied")]
     OperatorAlreadyExists,
 
-    #[msg("Insufficient token balance")]
-    InsufficientBalance,
-
     #[msg("Mathematical overflow")]
     MathOverflow,
+
+    #[msg("Amount must be greater than zero")]
+    AmountMustBePositive,
+
+    #[msg("Drift user already initialized for this account")]
+    DriftUserAlreadyInitialized,
+
+    #[msg("Drift deposit failed")]
+    DriftDepositFailed,
+
+    #[msg("Drift withdraw failed")]
+    DriftWithdrawFailed,
+
+    #[msg("Invalid Drift user account")]
+    InvalidDriftUser,
+
+    #[msg("Missing required Drift accounts")]
+    MissingDriftAccounts,
+
+    #[msg("Invalid Drift program")]
+    InvalidDriftProgram,
+
+    #[msg("Failed to delete Drift user account")]
+    DriftDeleteUserFailed,
 }

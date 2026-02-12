@@ -3,6 +3,7 @@ use anchor_spl::token_interface::{transfer_checked, TransferChecked, Mint, Token
 use crate::{state::*, errors::*, constants::*};
 
 /// Emergency: destroy a transfer (operator only, pool must be paused)
+/// Returns escrowed funds to the original sender.
 pub fn destroy_transfer(ctx: Context<DestroyTransfer>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let transfer = &mut ctx.accounts.transfer;
@@ -19,14 +20,14 @@ pub fn destroy_transfer(ctx: Context<DestroyTransfer>) -> Result<()> {
     // Validate transfer is active
     transfer.validate_active()?;
 
-    // Transfer amount to operator (emergency withdrawal)
+    // Return escrowed amount to the original sender (NOT the operator)
     let pool_seeds = &[POOL_SEED, pool.pool_id.as_ref(), &[pool.bump]];
     let pool_signer_seeds = &[&pool_seeds[..]];
 
     let transfer_accounts = TransferChecked {
         from: ctx.accounts.pool_token_account.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
-        to: ctx.accounts.operator_token_account.to_account_info(),
+        to: ctx.accounts.sender_token_account.to_account_info(),
         authority: pool.to_account_info(),
     };
     let cpi_ctx = CpiContext::new_with_signer(
@@ -40,8 +41,8 @@ pub fn destroy_transfer(ctx: Context<DestroyTransfer>) -> Result<()> {
     pool.add_withdrawal(transfer.amount)?;
     pool.increment_transfers_resolved()?;
 
-    // Mark as rejected (closed to operator)
-    transfer.mark_as_rejected()?;
+    // Mark as cancelled (closed to sender)
+    transfer.mark_as_cancelled()?;
 
     emit!(TransferDestroyed {
         transfer: transfer.key(),
@@ -85,19 +86,26 @@ pub struct DestroyTransfer<'info> {
     )]
     pub pool_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// Operator's token account to receive funds
+    /// Sender's token account to receive refund
     #[account(
         mut,
         associated_token::mint = pool.mint,
-        associated_token::authority = operator,
+        associated_token::authority = transfer.sender,
         associated_token::token_program = token_program
     )]
-    pub operator_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub sender_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// Transfer to destroy (closed to operator)
+    /// CHECK: Sender receives rent refund on close.
     #[account(
         mut,
-        close = operator,
+        constraint = transfer.sender == sender.key() @ HandshakeError::Unauthorized
+    )]
+    pub sender: AccountInfo<'info>,
+
+    /// Transfer to destroy (closed to sender, not operator)
+    #[account(
+        mut,
+        close = sender,
         constraint = transfer.pool == pool.key()
     )]
     pub transfer: Box<Account<'info, SecureTransfer>>,

@@ -16,4 +16,4 @@
 ## Resources
 - [/CHANGELOG.md](CHANGELOG.md) — Version history
 - [/.well-known/agent.json](../.well-known/agent.json) — Agent discovery metadata
-- [Solscan](https://solscan.io/account/HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg?cluster=devnet) — Deployed program on-chain
+- [Solscan](https://solscan.io/account/HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ?cluster=devnet) — Deployed program on-chain

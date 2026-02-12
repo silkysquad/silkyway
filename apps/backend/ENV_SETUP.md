@@ -41,8 +41,8 @@ DATABASE_PASSWORD=your_db_password
 
 # Solana
 RPC_URL=https://api.mainnet-beta.solana.com
-HANDSHAKE_PROGRAM_ID=HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg
-SILKYSIG_PROGRAM_ID=8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs
+HANDSHAKE_PROGRAM_ID=HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ
+SILKYSIG_PROGRAM_ID=SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS
 
 # System wallet
 SYSTEM_SIGNER_PRIVATE_KEY=/path/to/keypair.json

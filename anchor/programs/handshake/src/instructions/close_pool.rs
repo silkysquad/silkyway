@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{transfer_checked, TransferChecked, Mint, TokenAccount, TokenInterface};
+use anchor_spl::token_interface::{
+    close_account, transfer_checked, CloseAccount, TransferChecked, Mint, TokenAccount, TokenInterface,
+};
 use crate::{state::*, errors::*, constants::*};
 
 /// Close the pool (operator only, requires no outstanding transfers)
@@ -24,22 +26,37 @@ pub fn close_pool(ctx: Context<ClosePool>, withdrawal_amount: u64) -> Result<()>
         HandshakeError::InsufficientFunds
     );
 
-    // Transfer remaining tokens to operator
     let pool_seeds = &[POOL_SEED, pool.pool_id.as_ref(), &[pool.bump]];
     let pool_signer_seeds = &[&pool_seeds[..]];
 
-    let transfer_accounts = TransferChecked {
-        from: ctx.accounts.pool_token_account.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
-        to: ctx.accounts.operator_token_account.to_account_info(),
+    // Transfer remaining tokens to operator
+    if withdrawal_amount > 0 {
+        let transfer_accounts = TransferChecked {
+            from: ctx.accounts.pool_token_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.operator_token_account.to_account_info(),
+            authority: pool.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            transfer_accounts,
+            pool_signer_seeds,
+        );
+        transfer_checked(cpi_ctx, withdrawal_amount, ctx.accounts.mint.decimals)?;
+    }
+
+    // Close the pool token account (reclaim rent to operator)
+    let close_accounts = CloseAccount {
+        account: ctx.accounts.pool_token_account.to_account_info(),
+        destination: ctx.accounts.operator.to_account_info(),
         authority: pool.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new_with_signer(
+    let close_cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
-        transfer_accounts,
+        close_accounts,
         pool_signer_seeds,
     );
-    transfer_checked(cpi_ctx, withdrawal_amount, ctx.accounts.mint.decimals)?;
+    close_account(close_cpi_ctx)?;
 
     emit!(PoolClosed {
         pool: pool.key(),

@@ -53,7 +53,7 @@ export class WellKnownController {
         cli: 'silk',
       },
       network: this.network,
-      program_id: 'HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg',
+      program_id: 'HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ',
       token: 'USDC',
       formats: ['markdown', 'json'],
       updated: '2026-02-10',

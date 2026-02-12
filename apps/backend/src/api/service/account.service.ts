@@ -93,14 +93,14 @@ export class AccountService {
     owner: string;
     accountPda: string;
     operator: string;
-    perTxLimit: number;
+    perTxLimit?: number;
   }) {
     const client = this.solanaService.getSilkysigClient();
     return client.buildAddOperatorTx(
       new PublicKey(params.owner),
       new PublicKey(params.accountPda),
       new PublicKey(params.operator),
-      new BN(params.perTxLimit),
+      params.perTxLimit != null ? new BN(params.perTxLimit) : undefined,
     );
   }
 

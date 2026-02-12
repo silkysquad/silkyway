@@ -39,6 +39,9 @@ pub struct Pool {
 
     /// Emergency controls
     pub is_paused: bool,
+
+    /// Padding for future upgrades
+    pub _padding: [u8; 128],
 }
 
 impl Pool {
@@ -55,7 +58,8 @@ impl Pool {
         8 + // total_transfers_created
         8 + // total_transfers_resolved
         8 + // collected_fees
-        1; // is_paused
+        1 + // is_paused
+        128; // _padding
 
     /// Calculate transfer fee amount
     pub fn calculate_transfer_fee(&self, amount: u64) -> u64 {

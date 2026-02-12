@@ -14,7 +14,7 @@ const WalletMultiButton = dynamic(
   { ssr: false },
 );
 
-const PROGRAM_ID = new PublicKey('8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs');
+const PROGRAM_ID = new PublicKey('SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS');
 
 export default function HomePage() {
   const router = useRouter();
@@ -90,12 +90,12 @@ export default function HomePage() {
         <footer className="absolute bottom-8 text-center">
           <div className="text-[0.6rem] uppercase tracking-[0.2em] text-nebula-purple/40">Program</div>
           <a
-            href={solscanUrl('HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg', 'account')}
+            href={solscanUrl('HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ', 'account')}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[0.65rem] tracking-[0.03em] text-star-white/20 transition-colors hover:text-solar-gold/60"
           >
-            HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg
+            HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ
           </a>
         </footer>
       </div>

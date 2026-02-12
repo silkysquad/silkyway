@@ -38,6 +38,9 @@ pub struct SecureTransfer {
 
     /// Travel rule compliance data hash
     pub compliance_hash: Option<[u8; 32]>,
+
+    /// Padding for future upgrades
+    pub _padding: [u8; 64],
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Debug)]
@@ -79,7 +82,8 @@ impl SecureTransfer {
         1 + // status enum
         (1 + (1 + 64)) + // release_conditions Option
         64 + // memo
-        (1 + 32); // compliance_hash Option
+        (1 + 32) + // compliance_hash Option
+        64; // _padding
 
     /// Initialize a new transfer
     pub fn initialize(

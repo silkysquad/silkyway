@@ -23,29 +23,31 @@ Both programs live in the same Anchor workspace. Config is in `anchor/Anchor.tom
 
 Toolchain: Rust (pinned in `anchor/rust-toolchain.toml`), Anchor CLI 0.32.1, Agave (Solana) CLI v3.0.x stable.
 
-### Handshake — `HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg`
+### Handshake — `HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ`
 
 Payment protocol for time-locked, claimable transfers. Instructions: `init_pool`, `create_transfer`, `claim_transfer`, `cancel_transfer`, `reject_transfer`, `decline_transfer`, `expire_transfer`, `withdraw_fees`.
 
 - `anchor/programs/handshake/src/lib.rs` — All instruction handlers and account structs.
 - `anchor/tests/handshake.ts`, `anchor/tests/handshake-kit.ts` — Integration tests.
 
-### Silkysig — `8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs`
+### Silkysig — `SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS`
 
-Managed token account system with role-based operator delegation. A human owner creates an account that holds SPL tokens and authorizes up to 3 operators (agents) to transfer tokens with per-transaction spending limits. The owner bypasses all policies; operators are subject to limits and can be paused.
+Managed token account system with role-based operator delegation and optional Drift yield integration. A human owner creates an account that holds SPL tokens and authorizes up to 3 operators (agents) to transfer tokens with per-transaction spending limits. The owner bypasses all policies; operators are subject to limits and can be paused.
 
 **Instructions:**
-- `create_account` — Creates a SilkAccount PDA (`seeds = [b"account", owner]`) + associated token account. Optionally adds a first operator.
-- `deposit` — Anyone can deposit tokens into a Silk account.
-- `transfer_from_account` — Transfer tokens out. Owner: unrestricted. Operator: enforces pause check + per-tx limit. Others: rejected.
+- `create_account` — Creates a SilkAccount PDA (`seeds = [b"account", owner]`) + associated token account.
+- `deposit` — Anyone can deposit tokens into a Silk account. If Drift is initialized, forwards to Drift.
+- `transfer_from_account` — Transfer tokens out. Owner: unrestricted. Operator: enforces pause check + per-tx limit. If Drift initialized, withdraws from Drift first.
+- `init_drift_user` — Initialize Drift protocol integration for yield generation.
+- `close_account` — Close account and sweep tokens. Accepts `withdrawal_amount` for Drift cleanup.
 
-**Key state — `SilkAccount`:** owner, mint, is_paused, up to 3 `OperatorSlot`s (pubkey, per_tx_limit, daily_limit fields — daily limits defined but not yet enforced).
+**Key state — `SilkAccount`:** owner, mint, is_paused, up to 3 `OperatorSlot`s (pubkey, per_tx_limit), drift_user, drift_market_index, principal_balance.
 
 **Source layout:**
 - `anchor/programs/silkysig/src/lib.rs` — Program entry point, declares all instructions.
-- `anchor/programs/silkysig/src/instructions/` — `create_account.rs`, `deposit.rs`, `transfer_from_account.rs`.
+- `anchor/programs/silkysig/src/instructions/` — `create_account.rs`, `deposit.rs`, `transfer_from_account.rs`, `init_drift_user.rs`, `add_operator.rs`, `close_account.rs`.
 - `anchor/programs/silkysig/src/state/account.rs` — `SilkAccount` and `OperatorSlot` structs.
-- `anchor/programs/silkysig/src/errors.rs` — Error codes (Unauthorized, ExceedsPerTxLimit, AccountPaused, MaxOperatorsReached, etc.).
+- `anchor/programs/silkysig/src/errors.rs` — Error codes (Unauthorized, ExceedsPerTxLimit, AccountPaused, MaxOperatorsReached, Drift errors, etc.).
 - `anchor/tests/silkysig.ts` — Integration tests.
 
 ## Backend (`/apps/backend`)

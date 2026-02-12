@@ -7,16 +7,22 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-handshake = "HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg"
-silkysig = "8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs"
+handshake = "HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ"
+silkysig = "SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-#cluster = "localnet"
-cluster = "https://serene-shy-silence.solana-devnet.quiknode.pro/101359e31c4f79802f09c3d6f66cef11b1e7b00b/"
+cluster = "localnet"
+#cluster = "https://serene-shy-silence.solana-devnet.quiknode.pro/101359e31c4f79802f09c3d6f66cef11b1e7b00b/"
 wallet = "~/.config/solana/id.json"
 
+[programs.devnet]
+handshake = "HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ"
+silkysig = "SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS"
+
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/handshake.ts tests/silkysig.ts"
+test-localnet = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/handshake.ts tests/silkysig.ts"
+test-yield = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/silkysig-yield.ts"

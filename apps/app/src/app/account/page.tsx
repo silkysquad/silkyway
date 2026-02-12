@@ -6,12 +6,13 @@ import { PublicKey } from '@solana/web3.js';
 import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useAccountActions } from '@/_jotai/account/account.actions';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
+import { useSolBalance } from '@/hooks/useSolBalance';
 import { SolscanLink } from '@/components/SolscanLink';
 import { solscanUrl } from '@/lib/solscan';
 import { toast } from 'react-toastify';
 import { useCluster } from '@/contexts/ClusterContext';
 
-const PROGRAM_ID = new PublicKey('8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs');
+const PROGRAM_ID = new PublicKey('SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS');
 
 type Tab = 'deposit' | 'withdraw' | 'operators' | 'settings';
 
@@ -37,7 +38,6 @@ interface AccountData {
     index: number;
     pubkey: string;
     perTxLimit: string;
-    dailyLimit: string;
   }>;
 }
 
@@ -53,9 +53,11 @@ export default function AccountDashboardPage() {
     removeOperator,
     closeAccount,
     signAndSubmit,
+    transferSol,
   } = useAccountActions();
   const { requestFaucet } = useTransferActions();
   const { cluster } = useCluster();
+  const { balances, fetchMultipleBalances } = useSolBalance();
 
   const [account, setAccount] = useState<AccountData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,6 +77,9 @@ export default function AccountDashboardPage() {
   const [newPerTxLimit, setNewPerTxLimit] = useState('5');
   const [addOpLoading, setAddOpLoading] = useState(false);
   const [removeOpLoading, setRemoveOpLoading] = useState<string | null>(null);
+  const [fundingOperator, setFundingOperator] = useState<string | null>(null);
+  const [fundSolAmount, setFundSolAmount] = useState('0.1');
+  const [isFundingSol, setIsFundingSol] = useState(false);
 
   // Settings state
   const [pauseLoading, setPauseLoading] = useState(false);
@@ -93,12 +98,18 @@ export default function AccountDashboardPage() {
       );
       const data = await fetchAccount(pda.toBase58());
       setAccount(data);
+
+      // Fetch SOL balances for all operators
+      if (data.operators.length > 0) {
+        const operatorPubkeys = data.operators.map((op: { pubkey: string }) => op.pubkey);
+        await fetchMultipleBalances(operatorPubkeys);
+      }
     } catch {
       setAccount(null);
     } finally {
       setLoading(false);
     }
-  }, [publicKey, fetchAccount]);
+  }, [publicKey, fetchAccount, fetchMultipleBalances]);
 
   useEffect(() => {
     if (isConnected) {
@@ -230,6 +241,34 @@ export default function AccountDashboardPage() {
       toast.error(err instanceof Error ? err.message : 'Failed to remove operator');
     } finally {
       setRemoveOpLoading(null);
+    }
+  };
+
+  const handleFundOperator = async (operatorPubkey: string) => {
+    if (!walletAddress) return;
+    const solAmount = parseFloat(fundSolAmount) || 0;
+    if (solAmount <= 0) {
+      toast.error('Please enter a valid SOL amount');
+      return;
+    }
+
+    setIsFundingSol(true);
+    try {
+      const txid = await transferSol({
+        from: walletAddress,
+        to: operatorPubkey,
+        amountSol: solAmount,
+      });
+      toast.success(
+        <span>Sent ◎{solAmount} SOL! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
+      );
+      setFundingOperator(null);
+      setFundSolAmount('0.1');
+      await loadAccount(); // Refresh balances
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send SOL');
+    } finally {
+      setIsFundingSol(false);
     }
   };
 
@@ -438,30 +477,89 @@ export default function AccountDashboardPage() {
             </h2>
 
             {account.operators.length === 0 ? (
-              <p className="text-[0.8rem] text-star-white/40">No operators configured.</p>
+              <div className="space-y-4">
+                <p className="text-[0.85rem] text-star-white/40">No agents authorized yet.</p>
+                <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4 space-y-2">
+                  <p className="text-[0.8rem] font-medium text-nebula-purple">What are agents?</p>
+                  <p className="text-[0.75rem] text-star-white/40">
+                    Agents can make payments on your behalf with spending limits you control.
+                  </p>
+                  <p className="text-[0.75rem] text-star-white/40">
+                    Perfect for subscriptions, automated transfers, and AI agent operations.
+                  </p>
+                </div>
+              </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {account.operators.map((op) => (
-                  <div key={op.pubkey} className="flex items-center justify-between border border-nebula-purple/15 bg-deep-space/80 px-3 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <SolscanLink address={op.pubkey} type="account" />
-                      <span className="text-[0.7rem] text-star-white/40">
-                        ${formatAmount(op.perTxLimit, account.mintDecimals)}/tx
-                      </span>
+                  <div key={op.pubkey}>
+                    <div className="flex items-center justify-between border border-nebula-purple/15 bg-deep-space/80 px-3 py-2.5">
+                      <div className="flex items-center gap-3 text-[0.75rem]">
+                        <SolscanLink address={op.pubkey} type="account" />
+                        <span className="text-star-white/40">|</span>
+                        <span className="text-star-white/40">
+                          ${formatAmount(op.perTxLimit, account.mintDecimals)}/tx
+                        </span>
+                        <span className="text-star-white/40">|</span>
+                        <span className="text-star-white/60">
+                          ◎{(balances[op.pubkey] ?? 0).toFixed(4)} SOL
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setFundingOperator(fundingOperator === op.pubkey ? null : op.pubkey)}
+                          className="text-[0.7rem] font-medium uppercase tracking-[0.15em] text-nebula-purple transition-colors hover:text-nebula-purple/70"
+                        >
+                          {fundingOperator === op.pubkey ? 'Cancel' : 'Fund'}
+                        </button>
+                        <button
+                          onClick={() => handleRemoveOperator(op.pubkey)}
+                          disabled={removeOpLoading === op.pubkey}
+                          className="text-[0.7rem] font-medium uppercase tracking-[0.15em] text-red-400 transition-colors hover:text-red-300 disabled:opacity-30"
+                        >
+                          {removeOpLoading === op.pubkey ? 'Removing...' : 'Remove'}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleRemoveOperator(op.pubkey)}
-                      disabled={removeOpLoading === op.pubkey}
-                      className="text-[0.7rem] font-medium uppercase tracking-[0.15em] text-red-400 transition-colors hover:text-red-300 disabled:opacity-30"
-                    >
-                      {removeOpLoading === op.pubkey ? 'Removing...' : 'Remove'}
-                    </button>
+
+                    {fundingOperator === op.pubkey && (
+                      <div className="border border-t-0 border-nebula-purple/15 bg-deep-space/60 px-3 py-3">
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1 space-y-1">
+                            <label className="block text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">
+                              SOL amount
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[0.8rem] text-star-white/30">◎</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={fundSolAmount}
+                                onChange={(e) => setFundSolAmount(e.target.value)}
+                                className="w-full border border-nebula-purple/20 bg-deep-space/80 py-2 pl-7 pr-3 text-[0.8rem] text-star-white placeholder:text-star-white/15 transition-colors focus:border-solar-gold/30 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleFundOperator(op.pubkey)}
+                            disabled={isFundingSol}
+                            className="h-9 border border-nebula-purple/30 bg-nebula-purple/10 px-4 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-nebula-purple transition-all hover:border-nebula-purple/50 hover:bg-nebula-purple/18 disabled:opacity-30"
+                          >
+                            {isFundingSol ? 'Sending...' : 'Send SOL'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
             <div className="space-y-3 border-t border-nebula-purple/15 pt-4">
+              <h3 className="text-[0.75rem] font-medium uppercase tracking-[0.15em] text-star-white/50">
+                Add Operator
+              </h3>
               <div className="space-y-1.5">
                 <label className="block text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">
                   Operator public key

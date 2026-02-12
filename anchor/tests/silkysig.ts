@@ -127,9 +127,9 @@ describe("silkysig", () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe("A. Account Creation", () => {
-    it("A1. creates account with operator and per_tx_limit", async () => {
+    it("A1. creates account, then adds operator with per_tx_limit", async () => {
       await program.methods
-        .createAccount(operator.publicKey, PER_TX_LIMIT)
+        .createAccount()
         .accounts({
           owner: owner.publicKey,
           mint,
@@ -138,6 +138,15 @@ describe("silkysig", () => {
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
+        })
+        .signers([owner])
+        .rpc();
+
+      await program.methods
+        .addOperator(operator.publicKey, PER_TX_LIMIT)
+        .accounts({
+          owner: owner.publicKey,
+          silkAccount: accountPda,
         })
         .signers([owner])
         .rpc();
@@ -157,11 +166,11 @@ describe("silkysig", () => {
       assert.equal(balance.toNumber(), 0);
     });
 
-    it("A2. creates account without operator (both args null)", async () => {
+    it("A2. creates account without operator", async () => {
       const [account2Pda] = findAccountPda(programId, owner2.publicKey);
 
       await program.methods
-        .createAccount(null, null)
+        .createAccount()
         .accounts({
           owner: owner2.publicKey,
           mint,
@@ -185,7 +194,7 @@ describe("silkysig", () => {
     it("A3. fails to create duplicate account for same owner", async () => {
       try {
         await program.methods
-          .createAccount(null, null)
+          .createAccount()
           .accounts({
             owner: owner.publicKey,
             mint,
@@ -410,7 +419,7 @@ describe("silkysig", () => {
       }
     });
 
-    it("C7. operator with per_tx_limit=0 (unlimited) can transfer any amount", async () => {
+    it("C7. operator with per_tx_limit=null (unlimited, defaults to u64::MAX) can transfer any amount", async () => {
       // Create a second account with unlimited operator
       const unlimitedOwner = Keypair.generate();
       const unlimitedOperator = Keypair.generate();
@@ -436,11 +445,11 @@ describe("silkysig", () => {
       );
       await mintTo(connection, payerKeypair, mint, ownerAta, payerKeypair, 50_000_000);
 
-      // Create account with per_tx_limit = 0 (unlimited)
+      // Create account, then add operator with no limit (defaults to u64::MAX = unlimited)
       const [unlimitedPda] = findAccountPda(programId, unlimitedOwner.publicKey);
 
       await program.methods
-        .createAccount(unlimitedOperator.publicKey, new BN(0))
+        .createAccount()
         .accounts({
           owner: unlimitedOwner.publicKey,
           mint,
@@ -449,6 +458,15 @@ describe("silkysig", () => {
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
+        })
+        .signers([unlimitedOwner])
+        .rpc();
+
+      await program.methods
+        .addOperator(unlimitedOperator.publicKey, null)
+        .accounts({
+          owner: unlimitedOwner.publicKey,
+          silkAccount: unlimitedPda,
         })
         .signers([unlimitedOwner])
         .rpc();
@@ -805,7 +823,7 @@ describe("silkysig", () => {
 
       // Create account
       await program.methods
-        .createAccount(null, null)
+        .createAccount()
         .accounts({
           owner: closeOwner.publicKey,
           mint,
@@ -879,7 +897,7 @@ describe("silkysig", () => {
       const [zeroPda] = findAccountPda(programId, zeroOwner.publicKey);
 
       await program.methods
-        .createAccount(null, null)
+        .createAccount()
         .accounts({
           owner: zeroOwner.publicKey,
           mint,
@@ -927,7 +945,7 @@ describe("silkysig", () => {
       const [protectedPda] = findAccountPda(programId, protectedOwner.publicKey);
 
       await program.methods
-        .createAccount(null, null)
+        .createAccount()
         .accounts({
           owner: protectedOwner.publicKey,
           mint,

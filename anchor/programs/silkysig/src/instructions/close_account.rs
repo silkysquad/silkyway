@@ -7,9 +7,11 @@ use anchor_spl::{
         Mint, TokenAccount, TokenInterface,
     },
 };
-use crate::{state::*, constants::*};
+use crate::{debug_msg, state::*, errors::*, constants::*};
 
-pub fn close_account(ctx: Context<CloseAccount>) -> Result<()> {
+pub fn close_account<'a, 'b, 'c, 'info>(
+    ctx: Context<'a, 'b, 'c, 'info, CloseAccount<'info>>,
+) -> Result<()> {
     let account = &ctx.accounts.silk_account;
     let owner_key = account.owner;
     let account_seeds = &[
@@ -18,6 +20,92 @@ pub fn close_account(ctx: Context<CloseAccount>) -> Result<()> {
         &[account.bump],
     ];
     let signer_seeds = &[&account_seeds[..]];
+
+    // If Drift is initialized, withdraw everything and clean up Drift accounts
+    if account.drift_user.is_some() {
+        let remaining = &ctx.remaining_accounts;
+        require!(remaining.len() >= 8, SilkysigError::MissingDriftAccounts);
+
+        let drift_state = &remaining[0];
+        let drift_user = &remaining[1];
+        let drift_user_stats = &remaining[2];
+        let drift_spot_market_vault = &remaining[3];
+        let drift_signer = &remaining[4];
+        let drift_program = &remaining[5];
+        let drift_oracle = &remaining[6];
+        let drift_spot_market = &remaining[7];
+
+        // Validate drift program address
+        require!(
+            drift_program.key() == drift_cpi::ID,
+            SilkysigError::InvalidDriftProgram
+        );
+
+        // Validate drift user matches account's stored key
+        require!(
+            drift_user.key() == account.drift_user.unwrap(),
+            SilkysigError::InvalidDriftUser
+        );
+
+        let market_index = account.drift_market_index.unwrap();
+
+        // Withdraw all funds from Drift. u64::MAX + reduce_only=true tells Drift
+        // to withdraw the full balance without risking InsufficientCollateral errors.
+        let withdraw_accounts = drift_cpi::cpi::accounts::Withdraw {
+            state: drift_state.to_account_info(),
+            user: drift_user.to_account_info(),
+            user_stats: drift_user_stats.to_account_info(),
+            authority: account.to_account_info(),
+            spot_market_vault: drift_spot_market_vault.to_account_info(),
+            drift_signer: drift_signer.to_account_info(),
+            user_token_account: ctx.accounts.account_token_account.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        };
+
+        let drift_remaining = vec![
+            drift_oracle.to_account_info(),
+            drift_spot_market.to_account_info(),
+        ];
+
+        let withdraw_ctx = CpiContext::new_with_signer(
+            drift_program.to_account_info(),
+            withdraw_accounts,
+            signer_seeds,
+        )
+        .with_remaining_accounts(drift_remaining);
+
+        match drift_cpi::cpi::withdraw(withdraw_ctx, market_index, u64::MAX, true) {
+            Ok(_) => {}
+            Err(_e) => {
+                debug_msg!("Drift withdraw failed: {:?}", _e);
+                return Err(SilkysigError::DriftWithdrawFailed.into());
+            }
+        }
+
+        // Refresh token account balance after Drift withdrawal
+        ctx.accounts.account_token_account.reload()?;
+
+        // Drift requires the user account to be "idle" for ~13 days
+        // (~1,123,200 slots) before delete_user is allowed (error 6152:
+        // UserCantBeDeleted). After the withdrawal above the Drift user has
+        // zero balance but cannot be deleted yet. A dedicated
+        // `cleanup_drift_user` instruction can be added later to reclaim the
+        // rent once the idle period has elapsed.
+        //
+        // let delete_user_accounts = drift_cpi::cpi::accounts::DeleteUser {
+        //     user: drift_user.to_account_info(),
+        //     user_stats: drift_user_stats.to_account_info(),
+        //     state: drift_state.to_account_info(),
+        //     authority: account.to_account_info(),
+        // };
+        // drift_cpi::cpi::delete_user(
+        //     CpiContext::new_with_signer(
+        //         drift_program.to_account_info(),
+        //         delete_user_accounts,
+        //         signer_seeds,
+        //     ),
+        // )?;
+    }
 
     let swept_amount = ctx.accounts.account_token_account.amount;
 
@@ -37,7 +125,7 @@ pub fn close_account(ctx: Context<CloseAccount>) -> Result<()> {
         transfer_checked(cpi_ctx, swept_amount, ctx.accounts.mint.decimals)?;
     }
 
-    // 2. Close the PDA's ATA (rent lamports → owner)
+    // 2. Close the PDA's ATA (rent lamports -> owner)
     let close_accounts = SplCloseAccount {
         account: ctx.accounts.account_token_account.to_account_info(),
         destination: ctx.accounts.owner.to_account_info(),

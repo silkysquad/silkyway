@@ -6,7 +6,7 @@ import { TransferService } from '../service/transfer.service';
 import { Transfer, TransferStatus } from '../../db/models/Transfer';
 
 const EXPLORER = 'https://solscan.io';
-const PROGRAM_ID = 'HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg';
+const PROGRAM_ID = 'HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ';
 
 function clusterParam(cluster: string): string {
   return cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;

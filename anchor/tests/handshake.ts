@@ -188,6 +188,7 @@ function expireTransferAccounts(
 /** Build and return the accounts object for destroyTransfer */
 function destroyTransferAccounts(
   operator: PublicKey,
+  sender: PublicKey,
   poolPda: PublicKey,
   mint: PublicKey,
   transferPda: PublicKey
@@ -197,7 +198,8 @@ function destroyTransferAccounts(
     pool: poolPda,
     mint,
     poolTokenAccount: getAta(mint, poolPda),
-    operatorTokenAccount: getAta(mint, operator),
+    senderTokenAccount: getAta(mint, sender),
+    sender,
     transfer: transferPda,
     tokenProgram: TOKEN_PROGRAM_ID,
   };
@@ -1085,7 +1087,7 @@ describe("handshake", () => {
   describe("F. Destroy Transfer (Emergency)", () => {
     const TRANSFER_AMOUNT = new BN(500 * 1_000_000);
 
-    it("F1. operator destroys transfer when pool is paused (funds to operator)", async () => {
+    it("F1. operator destroys transfer when pool is paused (funds returned to sender)", async () => {
       const nonce = nextNonce();
       const [transferPda] = findTransferPda(programId, sender.publicKey, recipient.publicKey, nonce);
 
@@ -1102,22 +1104,22 @@ describe("handshake", () => {
         .accounts({ operator, pool: zeroFeePoolPda })
         .rpc();
 
-      const operatorBalBefore = await getTokenBalance(connection, getAta(mint, operator));
+      const senderBalBefore = await getTokenBalance(connection, getAta(mint, sender.publicKey));
 
       // Destroy
       await program.methods
         .destroyTransfer()
-        .accounts(destroyTransferAccounts(operator, zeroFeePoolPda, mint, transferPda))
+        .accounts(destroyTransferAccounts(operator, sender.publicKey, zeroFeePoolPda, mint, transferPda))
         .rpc();
 
       // Transfer closed
       const closed = await connection.getAccountInfo(transferPda);
       assert.isNull(closed);
 
-      // Operator received funds
-      const operatorBalAfter = await getTokenBalance(connection, getAta(mint, operator));
+      // Sender received funds back (not operator)
+      const senderBalAfter = await getTokenBalance(connection, getAta(mint, sender.publicKey));
       assert.equal(
-        operatorBalAfter.sub(operatorBalBefore).toString(),
+        senderBalAfter.sub(senderBalBefore).toString(),
         TRANSFER_AMOUNT.toString()
       );
 
@@ -1141,7 +1143,7 @@ describe("handshake", () => {
       try {
         await program.methods
           .destroyTransfer()
-          .accounts(destroyTransferAccounts(operator, zeroFeePoolPda, mint, transferPda))
+          .accounts(destroyTransferAccounts(operator, sender.publicKey, zeroFeePoolPda, mint, transferPda))
           .rpc();
         assert.fail("Should fail when pool is not paused");
       } catch (err: any) {
@@ -1175,7 +1177,7 @@ describe("handshake", () => {
       try {
         await program.methods
           .destroyTransfer()
-          .accounts(destroyTransferAccounts(sender.publicKey, zeroFeePoolPda, mint, transferPda))
+          .accounts(destroyTransferAccounts(sender.publicKey, sender.publicKey, zeroFeePoolPda, mint, transferPda))
           .signers([sender])
           .rpc();
         assert.fail("Non-operator should not be able to destroy");

@@ -7,8 +7,6 @@ use crate::{state::*, constants::*};
 
 pub fn create_account(
     ctx: Context<CreateAccount>,
-    operator: Option<Pubkey>,
-    per_tx_limit: Option<u64>,
 ) -> Result<()> {
     let account = &mut ctx.accounts.silk_account;
 
@@ -19,25 +17,15 @@ pub fn create_account(
     account.is_paused = false;
     account.operator_count = 0;
     account.operators = [OperatorSlot::default(); MAX_OPERATORS];
-
-    // Optionally add first operator
-    if let Some(op_pubkey) = operator {
-        account.operators[0] = OperatorSlot {
-            pubkey: op_pubkey,
-            per_tx_limit: per_tx_limit.unwrap_or(0),
-            daily_limit: 0,
-            daily_spent: 0,
-            last_reset: 0,
-        };
-        account.operator_count = 1;
-    }
+    account.drift_user = None;
+    account.drift_market_index = None;
+    account.principal_balance = 0;
+    account._reserved = [0u8; 64];
 
     emit!(AccountCreated {
         account: account.key(),
         owner: account.owner,
         mint: account.mint,
-        operator,
-        per_tx_limit,
     });
 
     Ok(())
@@ -81,6 +69,4 @@ pub struct AccountCreated {
     pub account: Pubkey,
     pub owner: Pubkey,
     pub mint: Pubkey,
-    pub operator: Option<Pubkey>,
-    pub per_tx_limit: Option<u64>,
 }

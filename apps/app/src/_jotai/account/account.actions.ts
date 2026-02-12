@@ -1,13 +1,14 @@
 import { useCallback } from 'react';
-import { VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction, SystemProgram, Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { api } from '@/lib/api';
+import { useConnection } from '@/hooks/useConnection';
 
 export function useAccountActions() {
   const { signTransaction } = useWallet();
 
   const createAccount = useCallback(
-    async (params: { owner: string; mint: string; operator: string; perTxLimit: number }) => {
+    async (params: { owner: string; mint: string; operator?: string; perTxLimit?: number }) => {
       const res = await api.post('/api/account/create', params);
       return res.data.data as { transaction: string; accountPda: string };
     },
@@ -57,7 +58,7 @@ export function useAccountActions() {
   );
 
   const addOperator = useCallback(
-    async (params: { owner: string; accountPda: string; operator: string; perTxLimit: number }) => {
+    async (params: { owner: string; accountPda: string; operator: string; perTxLimit?: number }) => {
       const res = await api.post('/api/account/add-operator', params);
       return res.data.data as { transaction: string };
     },
@@ -80,6 +81,37 @@ export function useAccountActions() {
     [],
   );
 
+  const { connection } = useConnection();
+
+  const transferSol = useCallback(
+    async (params: { from: string; to: string; amountSol: number }): Promise<string> => {
+      if (!signTransaction) throw new Error('Wallet does not support signing');
+
+      const fromPubkey = new PublicKey(params.from);
+      const toPubkey = new PublicKey(params.to);
+      const lamports = Math.floor(params.amountSol * LAMPORTS_PER_SOL);
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey,
+          toPubkey,
+          lamports,
+        })
+      );
+
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = fromPubkey;
+
+      const signed = await signTransaction(transaction);
+      const txid = await connection.sendRawTransaction(signed.serialize());
+      await connection.confirmTransaction(txid);
+
+      return txid;
+    },
+    [signTransaction, connection],
+  );
+
   return {
     createAccount,
     depositToAccount,
@@ -90,5 +122,6 @@ export function useAccountActions() {
     addOperator,
     removeOperator,
     closeAccount,
+    transferSol,
   };
 }

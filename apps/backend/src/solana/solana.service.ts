@@ -63,7 +63,7 @@ export class SolanaService implements OnModuleInit {
     // Initialize Anchor program
     const programId = this.configService.get<string>(
       'HANDSHAKE_PROGRAM_ID',
-      'HZ8paEkYZ2hKBwHoVk23doSLEad9K5duASRTGaYogmfg',
+      'HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ',
     );
 
     const wallet = new Wallet(this.systemSigner);
@@ -78,7 +78,7 @@ export class SolanaService implements OnModuleInit {
     // Initialize Silkysig program
     const silkysigProgramId = this.configService.get<string>(
       'SILKYSIG_PROGRAM_ID',
-      '8MDFar9moBycSXb6gdZgqkiSEGRBRkzxa7JPLddqYcKs',
+      'SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS',
     );
     const silkysigProgram = new Program(silkysigIdl as any, provider);
     this.silkysigClient = new SilkysigClient(silkysigProgram);
