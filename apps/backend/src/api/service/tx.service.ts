@@ -216,7 +216,6 @@ export class TxService {
     try {
       const connection = this.solanaService.getConnection();
       const client = this.solanaService.getHandshakeClient();
-      const programId = this.solanaService.getHandshakeClient()['program'].programId;
 
       const txInfo = await connection.getTransaction(txid, {
         commitment: 'confirmed',
@@ -232,14 +231,32 @@ export class TxService {
 
       if (!accountKeys) return;
 
+      // Determine if this was a terminal operation (claim/cancel/reject/decline/expire)
+      // by parsing Anchor's instruction logs. Terminal ops close the account on-chain,
+      // so fetchTransfer returns null — we need the logs to know which status to set.
+      const terminalStatus = this.parseTerminalStatus(txInfo.meta?.logMessages);
+
       for (const key of accountKeys) {
         const pubkey = key instanceof PublicKey ? key : new PublicKey(key);
         try {
           const transferAccount = await client.fetchTransfer(pubkey);
-          if (!transferAccount) continue;
+          if (transferAccount) {
+            // Account still exists on-chain (e.g. create_transfer)
+            await this.upsertTransfer(pubkey.toBase58(), transferAccount, txid);
+            continue;
+          }
 
-          // Found a transfer account — index it
-          await this.upsertTransfer(pubkey.toBase58(), transferAccount, txid);
+          // Account gone — if this was a terminal op, update the DB record
+          if (terminalStatus) {
+            const existing = await this.transferRepo.findOne({ transferPda: pubkey.toBase58() });
+            if (existing) {
+              existing.status = terminalStatus;
+              if (terminalStatus === TransferStatus.CLAIMED) existing.claimTxid = txid;
+              if (terminalStatus === TransferStatus.CANCELLED) existing.cancelTxid = txid;
+              await this.em.flush();
+              this.logger.log(`Transfer ${pubkey.toBase58()} updated to ${terminalStatus} via tx ${txid}`);
+            }
+          }
         } catch {
           // Not a transfer account, skip
         }
@@ -247,6 +264,27 @@ export class TxService {
     } catch (e) {
       this.logger.warn(`Failed to index tx ${txid}: ${e.message}`);
     }
+  }
+
+  private parseTerminalStatus(logs?: string[] | null): TransferStatus | null {
+    if (!logs) return null;
+
+    const instructionMap: Record<string, TransferStatus> = {
+      ClaimTransfer: TransferStatus.CLAIMED,
+      CancelTransfer: TransferStatus.CANCELLED,
+      RejectTransfer: TransferStatus.REJECTED,
+      DeclineTransfer: TransferStatus.DECLINED,
+      ExpireTransfer: TransferStatus.EXPIRED,
+    };
+
+    for (const log of logs) {
+      const match = log.match(/Instruction: (\w+)/);
+      if (match && instructionMap[match[1]]) {
+        return instructionMap[match[1]];
+      }
+    }
+
+    return null;
   }
 
   private async upsertTransfer(pda: string, onChain: any, txid: string) {
