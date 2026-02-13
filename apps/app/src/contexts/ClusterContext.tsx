@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 
 export type SolanaCluster = 'mainnet-beta' | 'devnet';
 
@@ -47,6 +47,16 @@ const ClusterContext = createContext<ClusterContextValue | null>(null);
 
 export function ClusterProvider({ children }: { children: ReactNode }) {
   const [cluster, setClusterState] = useState<SolanaCluster>(readStoredCluster);
+
+  // Sync cluster from URL params after hydration (server always defaults to mainnet-beta)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlCluster = params.get('cluster');
+    if ((urlCluster === 'devnet' || urlCluster === 'mainnet-beta') && urlCluster !== cluster) {
+      localStorage.setItem(STORAGE_KEY, urlCluster);
+      setClusterState(urlCluster);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setCluster = useCallback((c: SolanaCluster) => {
     localStorage.setItem(STORAGE_KEY, c);
