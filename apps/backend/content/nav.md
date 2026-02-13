@@ -10,6 +10,9 @@
 ## Examples
 - [/examples/basic-escrow.md](../examples/basic-escrow.md) — Create, claim, cancel patterns in TypeScript
 
+## App
+- [app.silkyway.ai](https://app.silkyway.ai) — SilkyWay web application — manage accounts, send payments
+
 ## Live
 - [/activity](https://silkyway.ai/activity) — Live transfer activity on Solana devnet
 

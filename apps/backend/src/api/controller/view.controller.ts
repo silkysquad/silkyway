@@ -119,6 +119,7 @@ function pageShell(title: string, body: string, cluster: string): string {
   <div class="container">
     <div class="nav">
       <a href="/human">Home</a>
+      <a href="https://app.silkyway.ai" target="_blank" rel="noopener">App</a>
       <a href="/activity">Activity</a>
       <a href="/skill.md">Skill</a>
       <a href="/">Agent Docs</a>
