@@ -500,6 +500,25 @@
       100% { opacity: 0; }
     }
 
+    .footer-programs {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-program {
+      text-align: center;
+    }
+
+    .footer-program-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(250, 245, 255, 0.4);
+      margin-bottom: 0.5rem;
+    }
+
     @media (max-width: 768px) {
       .content {
         grid-template-columns: 1fr;
@@ -516,6 +535,10 @@
       }
       .orbit-ring {
         display: none;
+      }
+      .footer-programs {
+        flex-direction: column;
+        align-items: center;
       }
     }
   </style>
@@ -534,16 +557,16 @@
   <div class="container">
     <div class="status-bar">
       <span><span class="status-dot"></span> System Online</span>
-      <span>Solana</span>
-      <span><a href="https://app.silkyway.ai" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed rgba(168, 85, 247, 0.4);">App</a></span>
-      <span><a href="https://docs.silkyway.ai" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed rgba(168, 85, 247, 0.4);">Docs</a></span>
+
+      <span><a href="https://app.silkyway.ai" target="_blank" rel="noopener" style="color: var(--solar-gold); text-decoration: none; border-bottom: 1px dashed rgba(251, 191, 36, 0.4);">App</a></span>
+      <span><a href="https://docs.silkyway.ai" target="_blank" rel="noopener" style="color: var(--solar-gold); text-decoration: none; border-bottom: 1px dashed rgba(251, 191, 36, 0.4);">Docs</a></span>
     </div>
 
     <header class="header">
       <div class="orbit-ring"></div>
       <h1>SilkyWay</h1>
-      <div class="subtitle">// The Financial OS for Autonomous Agents</div>
-      <p class="tagline">Agents don't need wallets. They need accounts. Policy-controlled, yield-bearing, on-chain financial infrastructure — where the safety is in the protocol, not the AI.</p>
+      <div class="subtitle">// Agent Finance Infrastructure</div>
+      <p class="tagline">Agents don't need wallets — they need accounts. On-chain spending controls and programmable payments, where the safety is in the protocol, not the AI.</p>
       <div class="agent-notice">
         <strong>Agent Interface</strong> — Visit the <a href="/agent">agent endpoint</a> for machine-readable content, <a href="/skill.md">skill.md</a> for the API reference, or <a href="https://docs.silkyway.ai" target="_blank" rel="noopener">docs.silkyway.ai</a> for full documentation. <a href="https://app.silkyway.ai" target="_blank" rel="noopener">Open the App →</a>
       </div>
@@ -551,46 +574,50 @@
 
     <main class="content">
       <section class="panel">
-        <span class="panel-icon">&#9888;</span>
-        <h2>The Problem</h2>
-        <p>Every agent wallet today is a raw keypair. Full control. No structure. One hallucination, one prompt injection, one bad API call — funds gone. Rate limits in agent code aren't enforceable. Human-in-the-loop approvals defeat automation.</p>
-        <p>Asking an agent to manage money with a wallet is like giving an employee a personal checking account to run a company budget.</p>
+        <span class="panel-icon">&#127974;</span>
+        <h2>Silk Accounts</h2>
+        <p>A bank account for your agent. Authorize operators with per-transaction spending limits enforced by the chain. One prompt injection can't drain what the protocol won't allow.</p>
+        <ul class="link-list">
+          <li><a href="https://solscan.io/account/SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS" target="_blank" rel="noopener">View on Solscan</a></li>
+          <li><a href="https://docs.silkyway.ai" target="_blank" rel="noopener">Documentation</a></li>
+        </ul>
       </section>
 
       <section class="panel">
-        <span class="panel-icon">&#9889;</span>
-        <h2>Accounts, Not Wallets</h2>
-        <p>A SilkyWay account is an on-chain program that holds funds, enforces spending policies, and enables programmable financial workflows. Operators get policy-bound access — per-transaction limits enforced by the chain itself, not by agent code.</p>
-        <p>The safety is in the infrastructure, not the alignment.</p>
+        <span class="panel-icon">&#129309;</span>
+        <h2>Handshake</h2>
+        <p>Payment protocol with onchain escrow. Time-locked transfers with built-in reversibility and programmable release — payments that can be claimed, cancelled, or expired.</p>
         <ul class="link-list">
+          <li><a href="https://solscan.io/account/HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ" target="_blank" rel="noopener">View on Solscan</a></li>
           <li><a href="https://docs.silkyway.ai" target="_blank" rel="noopener">Documentation</a></li>
-          <li><a href="/skill.md">API Reference &amp; CLI Guide</a></li>
         </ul>
       </section>
 
       <section class="panel">
         <span class="panel-icon">&#10095;</span>
         <h2>Get Started</h2>
-        <p>Create an account, set spending policies, fund it. Your agent operates within on-chain guardrails — prompt injection can't drain funds beyond policy limits.</p>
+        <p>Create an account, authorize an agent, set spending policies. Your agent operates within on-chain guardrails. Point your agent at the skill file or install the <a href="https://clawhub.ai/silostack/silk" target="_blank" rel="noopener" style="color: var(--nebula-purple); text-decoration: underline; text-underline-offset: 3px;">silk</a> clawhub skill.</p>
         <p style="font-size: 0.8rem; color: rgba(250, 245, 255, 0.4); margin-top: 0.5rem; font-family: 'DM Mono', monospace;">$ silk account sync</p>
         <ul class="link-list">
           <li><a href="https://app.silkyway.ai" target="_blank" rel="noopener">Launch App</a></li>
-          <li><a href="https://docs.silkyway.ai" target="_blank" rel="noopener">Full Docs</a></li>
+          <li><a href="/skill.md">Skill File</a></li>
           <li><a href="/agent">Agent Endpoint</a></li>
-          <li><a href="/llms.txt">LLM Metadata</a></li>
         </ul>
       </section>
     </main>
 
-    <div class="activity-cta" style="margin-top: 2rem; padding: 1.5rem 2rem; text-align: center; border: 1px solid rgba(251, 191, 36, 0.2); background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(168, 85, 247, 0.04) 100%); border-radius: 2px; animation: fadeUp 1.2s ease-out 0.8s both;">
-      <div style="font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--solar-gold); margin-bottom: 0.5rem;">Live on Solana</div>
-      <a href="/activity" style="color: var(--star-white); text-decoration: none; font-size: 1rem; font-weight: 500; border-bottom: 1px dashed var(--solar-gold);">View Live Transfer Activity &rarr;</a>
-    </div>
-
     <footer class="footer">
-      <div class="footer-label">Program ID</div>
-      <div class="program-id"><a href="https://solscan.io/account/HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--solar-gold);">HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ</a></div>
-      <div class="footer-note">Deployed on Solana &middot; <a href="/activity" style="color: var(--nebula-purple); text-decoration: none; border-bottom: 1px dashed var(--nebula-purple);">Live Transfer Activity</a></div>
+      <div class="footer-label">Program IDs</div>
+      <div class="footer-programs">
+        <div class="footer-program">
+          <div class="footer-program-label">Silk Accounts</div>
+          <div class="program-id"><a href="https://solscan.io/account/SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--solar-gold);">SiLKos3MCFggwLsjSeuRiCdcs2MLoJNwq59XwTvEwcS</a></div>
+        </div>
+        <div class="footer-program">
+          <div class="footer-program-label">Handshake</div>
+          <div class="program-id"><a href="https://solscan.io/account/HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--solar-gold);">HANDu9uNdnraNbcueGfXhd3UPu6BXfQroKAsSxFhPXEQ</a></div>
+        </div>
+      </div>
     </footer>
   </div>
 

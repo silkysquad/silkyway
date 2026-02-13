@@ -13,9 +13,6 @@
 ## App
 - [app.silkyway.ai](https://app.silkyway.ai) — SilkyWay web application — manage accounts, send payments
 
-## Live
-- [/activity](https://silkyway.ai/activity) — Live transfer activity on Solana devnet
-
 ## Resources
 - [/CHANGELOG.md](CHANGELOG.md) — Version history
 - [/.well-known/agent.json](../.well-known/agent.json) — Agent discovery metadata

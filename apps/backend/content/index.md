@@ -108,6 +108,5 @@ The backend never sees your private key. It only builds the transaction structur
 
 - [Skill file](skill.md) — complete API reference, CLI, error codes, examples
 - [Basic Escrow Flow](examples/basic-escrow.md) — create, claim, cancel patterns
-- [Live Transfer Activity](https://silkyway.ai/activity) — real-time on-chain activity
 - [Changelog](CHANGELOG.md) — version history
 - [Navigation](nav.md) — full site map
