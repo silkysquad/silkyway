@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useConnectedWallet } from '@/hooks/useConnectedWallet';
+import { useCluster } from '@/contexts/ClusterContext';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { api } from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -21,6 +22,7 @@ export default function SendPage() {
   const { publicKey, isConnected } = useConnectedWallet();
   const { createTransfer, signAndSubmit } = useTransferActions();
 
+  const { cluster } = useCluster();
   const [tokens, setTokens] = useState<Token[]>([]);
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
@@ -34,7 +36,7 @@ export default function SendPage() {
       setTokens(tokenList);
       if (tokenList.length > 0) setSelectedToken(tokenList[0].symbol);
     }).catch(() => {});
-  }, []);
+  }, [cluster]);
 
   if (!isConnected) {
     return (

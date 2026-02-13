@@ -34,7 +34,7 @@ export default function HomePage() {
       .then(() => router.push('/account'))
       .catch(() => router.push('/transfers'))
       .finally(() => setChecking(false));
-  }, [isConnected, publicKey, fetchAccount, router]);
+  }, [isConnected, publicKey, fetchAccount, router, cluster]);
 
   if (isConnected && checking) {
     return (

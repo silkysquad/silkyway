@@ -23,6 +23,7 @@ export default function TransferDetailPage() {
   const { publicKey, isConnected } = useConnectedWallet();
   const { claimTransfer, cancelTransfer, signAndSubmit } = useTransferActions();
 
+  const { cluster } = useCluster();
   const [transfer, setTransfer] = useState<TransferInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<'claim' | 'cancel' | null>(null);
@@ -40,7 +41,7 @@ export default function TransferDetailPage() {
 
   useEffect(() => {
     fetchTransfer();
-  }, [fetchTransfer]);
+  }, [fetchTransfer, cluster]);
 
   const handleClaim = async () => {
     if (!publicKey || !transfer) return;

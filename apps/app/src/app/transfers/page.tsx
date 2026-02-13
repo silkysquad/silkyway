@@ -6,6 +6,7 @@ import { useAtomValue } from 'jotai';
 import { useConnectedWallet } from '@/hooks/useConnectedWallet';
 import { useTransferActions } from '@/_jotai/transfer/transfer.actions';
 import { transfersAtom, isLoadingTransfersAtom } from '@/_jotai/transfer/transfer.state';
+import { useCluster } from '@/contexts/ClusterContext';
 
 function formatAmount(raw: string | number, decimals: number) {
   return (Number(raw) / 10 ** decimals).toFixed(2);
@@ -13,6 +14,7 @@ function formatAmount(raw: string | number, decimals: number) {
 
 export default function TransfersPage() {
   const { publicKey, isConnected } = useConnectedWallet();
+  const { cluster } = useCluster();
   const { fetchTransfers } = useTransferActions();
   const transfers = useAtomValue(transfersAtom);
   const isLoading = useAtomValue(isLoadingTransfersAtom);
@@ -21,7 +23,7 @@ export default function TransfersPage() {
     if (publicKey) {
       fetchTransfers(publicKey.toBase58());
     }
-  }, [publicKey, fetchTransfers]);
+  }, [publicKey, fetchTransfers, cluster]);
 
   if (!isConnected) {
     return (
