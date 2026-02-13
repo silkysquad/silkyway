@@ -27,18 +27,18 @@ function ClusterToggle() {
   ];
 
   return (
-    <div className="flex items-center rounded-full border border-nebula-purple/20 bg-deep-space/80 p-0.5">
+    <div className="flex items-center rounded-full border border-nebula-purple/20 bg-deep-space/80 p-1">
       {options.map(({ value, label }) => (
         <button
           key={value}
           onClick={() => setCluster(value)}
           className={cn(
-            'rounded-full px-2.5 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.15em] transition-all duration-200',
+            'rounded-full px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.15em] transition-all duration-200',
             cluster === value
               ? value === 'mainnet-beta'
                 ? 'bg-gradient-to-r from-solar-gold/90 to-solar-orange/90 text-deep-space'
                 : 'bg-gradient-to-r from-nebula-purple/90 to-nebula-purple/70 text-star-white'
-              : 'text-star-white/30 hover:text-star-white/50',
+              : 'bg-star-white/5 text-star-white/50 hover:bg-star-white/10 hover:text-star-white/70',
           )}
         >
           {label}
