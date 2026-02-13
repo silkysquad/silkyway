@@ -29,34 +29,29 @@ const CLUSTER_CONFIGS: Record<SolanaCluster, ClusterConfig> = {
   },
 };
 
-function readStoredCluster(): SolanaCluster {
-  if (typeof window === 'undefined') return 'mainnet-beta';
-  // Check URL params first (for external claim links like ?cluster=devnet)
-  const params = new URLSearchParams(window.location.search);
-  const urlCluster = params.get('cluster');
-  if (urlCluster === 'devnet' || urlCluster === 'mainnet-beta') {
-    localStorage.setItem(STORAGE_KEY, urlCluster);
-    return urlCluster;
-  }
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'mainnet-beta' || stored === 'devnet') return stored;
-  return 'mainnet-beta';
-}
+const DEFAULT_CLUSTER: SolanaCluster = 'mainnet-beta';
 
 const ClusterContext = createContext<ClusterContextValue | null>(null);
 
 export function ClusterProvider({ children }: { children: ReactNode }) {
-  const [cluster, setClusterState] = useState<SolanaCluster>(readStoredCluster);
+  const [cluster, setClusterState] = useState<SolanaCluster>(DEFAULT_CLUSTER);
 
-  // Sync cluster from URL params after hydration (server always defaults to mainnet-beta)
+  // Sync cluster from URL params / localStorage after hydration to avoid SSR mismatch
   useEffect(() => {
+    // URL params take priority (for links like ?cluster=devnet)
     const params = new URLSearchParams(window.location.search);
     const urlCluster = params.get('cluster');
-    if ((urlCluster === 'devnet' || urlCluster === 'mainnet-beta') && urlCluster !== cluster) {
+    if (urlCluster === 'devnet' || urlCluster === 'mainnet-beta') {
       localStorage.setItem(STORAGE_KEY, urlCluster);
       setClusterState(urlCluster);
+      return;
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Fall back to localStorage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'mainnet-beta' || stored === 'devnet') {
+      setClusterState(stored);
+    }
+  }, []);
 
   const setCluster = useCallback((c: SolanaCluster) => {
     localStorage.setItem(STORAGE_KEY, c);
