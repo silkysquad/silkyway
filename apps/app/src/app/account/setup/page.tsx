@@ -48,6 +48,7 @@ function AccountSetupContent() {
   const [isFundingSol, setIsFundingSol] = useState(false);
   const [isAirdropping, setIsAirdropping] = useState(false);
   const [isFauceting, setIsFauceting] = useState(false);
+  const [didFund, setDidFund] = useState(false);
 
   // Validate agent param if provided
   const agentValid = (() => {
@@ -177,6 +178,7 @@ function AccountSetupContent() {
       toast.success(
         <span>Account funded! TX: <a href={solscanUrl(txid, 'tx')} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-solar-gold">{txid.slice(0, 8)}...</a></span>,
       );
+      setDidFund(true);
       setStep('done');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fund account';
@@ -374,9 +376,10 @@ function AccountSetupContent() {
         {/* Step 3: Fund Account */}
         {step === 'fund' && (
           <div className="space-y-5">
-            <h2 className="mb-5 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
+            <h2 className="text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
               Fund Account
             </h2>
+            <p className="mb-5 text-[0.7rem] text-star-white/30">Optional — you can fund your account later.</p>
 
             <div className="space-y-1.5">
               <div className="text-[0.7rem] uppercase tracking-[0.15em] text-star-white/50">Account PDA</div>
@@ -421,13 +424,22 @@ function AccountSetupContent() {
               </div>
             )}
 
-            <button
-              onClick={handleFund}
-              disabled={isFunding || depositNum <= 0}
-              className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
-            >
-              {isFunding ? 'Funding...' : 'Fund Account'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStep('done')}
+                disabled={isFunding}
+                className="h-10 w-full border border-star-white/15 bg-star-white/5 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-star-white/50 transition-all hover:border-star-white/25 hover:bg-star-white/8 disabled:opacity-30"
+              >
+                Skip
+              </button>
+              <button
+                onClick={handleFund}
+                disabled={isFunding || depositNum <= 0}
+                className="h-10 w-full border border-solar-gold/30 bg-solar-gold/10 text-[0.8rem] font-medium uppercase tracking-[0.15em] text-solar-gold transition-all hover:border-solar-gold/50 hover:bg-solar-gold/18 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] disabled:opacity-30 disabled:hover:shadow-none"
+              >
+                {isFunding ? 'Funding...' : 'Fund Account'}
+              </button>
+            </div>
 
             {cluster === 'devnet' && (
               <button
@@ -445,7 +457,7 @@ function AccountSetupContent() {
         {step === 'done' && (
           <div className="space-y-5">
             <h2 className="mb-5 text-[0.85rem] font-medium uppercase tracking-[0.2em] text-solar-gold">
-              Account Created & Funded
+              {didFund ? 'Account Created & Funded' : 'Account Created'}
             </h2>
 
             <div className="space-y-3">
@@ -471,7 +483,7 @@ function AccountSetupContent() {
               )}
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Balance</span>
-                <span className="text-star-white/70">${depositNum.toFixed(2)} USDC</span>
+                <span className="text-star-white/70">{didFund ? `$${depositNum.toFixed(2)} USDC` : 'Not funded yet'}</span>
               </div>
               <div className="flex justify-between text-[0.8rem]">
                 <span className="text-star-white/50">Network</span>
@@ -491,7 +503,7 @@ function AccountSetupContent() {
             ) : (
               <div className="border-l-2 border-nebula-purple bg-nebula-purple/[0.04] p-4">
                 <p className="text-[0.85rem] text-star-white/60">
-                  Your account is ready. Add an agent anytime from your account dashboard to enable automated payments.
+                  Your account is ready.{!didFund && ' You can fund it anytime from your account dashboard.'} Add an agent anytime from your account dashboard to enable automated payments.
                 </p>
               </div>
             )}
