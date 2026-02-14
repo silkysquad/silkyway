@@ -157,36 +157,41 @@ export class SilkysigClient {
       tx.add(addOpIx);
     }
 
-    // Always initialize Drift so deposits earn yield
+    // Initialize Drift so deposits earn yield — skip if Drift accounts already exist
+    // (e.g. owner closed and is recreating their account)
     const subAccountId = 0;
-    const name = Array.from(Buffer.alloc(32));
-    const driftUser = this.getDriftUserPDA(silkAccountPda, subAccountId);
     const driftUserStats = this.getDriftUserStatsPDA(silkAccountPda);
-    const driftState = this.getDriftStatePDA();
-    const driftSpotMarketVault = this.getDriftSpotMarketVaultPDA(USDC_MARKET_INDEX);
-    const driftSpotMarket = this.getDriftSpotMarketPDA(USDC_MARKET_INDEX);
-    const driftOracle = await this.fetchSpotMarketOracle(USDC_MARKET_INDEX);
+    const driftUserStatsInfo = await this.connection.getAccountInfo(driftUserStats);
 
-    const initDriftIx = await (this.program.methods as any)
-      .initDriftUser(subAccountId, name, USDC_MARKET_INDEX)
-      .accounts({
-        owner,
-        silkAccount: silkAccountPda,
-        mint,
-        accountTokenAccount,
-        driftUser,
-        driftUserStats,
-        driftState,
-        driftSpotMarketVault,
-        driftSpotMarket,
-        driftOracle,
-        driftProgram: DRIFT_PROGRAM,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: web3.SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-      })
-      .instruction();
-    tx.add(initDriftIx);
+    if (!driftUserStatsInfo) {
+      const name = Array.from(Buffer.alloc(32));
+      const driftUser = this.getDriftUserPDA(silkAccountPda, subAccountId);
+      const driftState = this.getDriftStatePDA();
+      const driftSpotMarketVault = this.getDriftSpotMarketVaultPDA(USDC_MARKET_INDEX);
+      const driftSpotMarket = this.getDriftSpotMarketPDA(USDC_MARKET_INDEX);
+      const driftOracle = await this.fetchSpotMarketOracle(USDC_MARKET_INDEX);
+
+      const initDriftIx = await (this.program.methods as any)
+        .initDriftUser(subAccountId, name, USDC_MARKET_INDEX)
+        .accounts({
+          owner,
+          silkAccount: silkAccountPda,
+          mint,
+          accountTokenAccount,
+          driftUser,
+          driftUserStats,
+          driftState,
+          driftSpotMarketVault,
+          driftSpotMarket,
+          driftOracle,
+          driftProgram: DRIFT_PROGRAM,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+      tx.add(initDriftIx);
+    }
 
     const serialized = tx.serialize({ requireAllSignatures: false }).toString('base64');
     return { transaction: serialized, accountPda: silkAccountPda.toBase58() };
